@@ -1,0 +1,69 @@
+<?php 
+//$ Id;
+
+/**
+ * @file
+ * Tests for media entity controllers.
+ */
+
+/**
+ * Test media type creation and management.
+ */
+class MediaEntityTest extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Media entity',
+      'description' => 'Tests media entity handling',
+      'group' => 'Media',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('media');
+    // Nice, TDD FTW.  #totalsarcasm
+    variable_set('simpletest_verbose', TRUE);
+  }
+  
+  function createMedia() {
+    //file_save_data()
+    $values = array(
+      'type' => 'image',
+      'uid' => 1,
+      'filename' => 'fakefile.jpg',
+      'uri' => 'temporary://blah.jpg',
+      'filemime' => 'image/jpeg',
+      'filesize' => 12345,
+      'status' 	 => 1,
+      'timestamp'=> time(),
+    );
+    
+    $m = new Media($values);
+    $m->save();
+    return $m;
+  }
+  
+  function testCreateMedia() {
+    $m = $this->createMedia();
+    $loaded = entity_get_controller('media')->load(array($m->fid));
+    $media = current($loaded);
+    $this->assertEqual($media->filename, $m->filename);
+  }
+  
+  function testQueryMedia() {
+    $m = $this->createMedia();
+    $controller = entity_get_controller('media');
+    $result = $controller->load(NULL, array(array('uri', 'temporary://%', 'LIKE')));
+    $this->assertEqual(count($result), 1, "Returned one result as expected for like % condition");
+    
+    $controller = entity_get_controller('media');
+    $result = $controller->load(NULL, array(array('uri', 'http://%', 'LIKE')));
+    $this->assertNotEqual(count($result), 1, "Did not return 1 result");
+
+    $controller = entity_get_controller('media');
+    $result = $controller->load(NULL, array('uri' => 'temporary://blah.jpg'));
+    $this->assertEqual(count($result), 1, "Got one result for normal conditions");
+  }
+}
+
+?>

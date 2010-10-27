@@ -1,0 +1,55 @@
+/* $Id: colors.css,v 1.7 2010/10/05 01:48:11 dries Exp $ */
+
+/* ---------- Color Module Styles ----------- */
+
+body {
+  background-color: #292929;
+  color: #f0f4f1;
+}
+#page-wrapper,
+#main,
+body.overlay {
+  background-color: #f0f4f1;
+  color: #3b3b3b;
+}
+#main-menu-links li a.active,
+#main-menu-links li.active-trail a {
+  background: #f0f4f1;
+}
+.tabs ul.primary li a.active {
+  background-color: #f0f4f1;
+}
+.tabs ul.primary li.active a {
+  background-color: #f0f4f1;
+  border-bottom: 1px solid #f0f4f1;
+}
+#header {
+  background-color: #333638;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#000000), to(#333638));
+  background-image: -moz-linear-gradient(-90deg, #000000, #333638);
+}
+a {
+  color: #0070b3;
+}
+a:hover,
+a:focus {
+  color: #008ee2;
+}
+a:active {
+  color: #22adff;
+}
+.sidebar .block {
+  background-color: #f6f6f2;
+  border-color: #f9f9f9;
+}
+#footer-wrapper {
+  background: #292929;
+}
+.region-header,
+.region-header a,
+.region-header li a.active,
+#header #name-and-slogan,
+#header #name-and-slogan a,
+#secondary-menu-links li a {
+  color: #fffeff;
+}

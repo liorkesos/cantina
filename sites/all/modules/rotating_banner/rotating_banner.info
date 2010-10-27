@@ -1,0 +1,7 @@
+; $Id: rotating_banner.info,v 1.2 2010/05/11 11:14:19 JacobSingh Exp $
+name = Rotating banner
+description = Provides a way to create rotating banners as blocks.
+dependencies[] = media
+core = 7.x
+files[] = rotating_banner.module
+files[] = rotating_banner.install

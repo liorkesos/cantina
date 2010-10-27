@@ -1,0 +1,19 @@
+; $Id: entity.info,v 1.1.2.7 2010/09/29 09:27:57 fago Exp $
+name = Entity CRUD API
+description = CRUD API for entities.
+core = 7.x
+files[] = entity.controller.inc
+files[] = entity.db_faces.inc
+files[] = entity.db.inc
+files[] = entity.features.inc
+files[] = entity.info.inc
+files[] = entity.module
+files[] = entity.rules.inc
+files[] = entity.test
+
+; Information added by drupal.org packaging script on 2010-10-11
+version = "7.x-1.0-beta1"
+core = "7.x"
+project = "entity"
+datestamp = "1286786762"
+

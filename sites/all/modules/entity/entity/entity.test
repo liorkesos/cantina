@@ -1,0 +1,206 @@
+<?php
+// $Id: entity.test,v 1.1.2.13 2010/10/07 08:30:46 fago Exp $
+
+/**
+ * @file
+ * Entity CRUD API tests.
+ */
+
+/**
+ * Test basic API.
+ */
+class EntityAPITestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Entity CRUD',
+      'description' => 'Tests basic CRUD API functionality.',
+      'group' => 'Entity API',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('entity', 'entity_test');
+  }
+
+  /**
+   * Tests CRUD.
+   */
+  function testCRUD() {
+    $user1 = $this->drupalCreateUser();
+    // Create test entities for the user1 and unrelated to a user.
+    $entity = new EntityClass(array('name' => 'test', 'uid' => $user1->uid));
+    $entity->save();
+    $entity = new EntityClass(array('name' => 'test2', 'uid' => $user1->uid));
+    $entity->save();
+    $entity = new EntityClass(array('name' => 'test', 'uid' => NULL));
+    $entity->save();
+
+    $entities = array_values(entity_test_load_multiple(FALSE, array('name' => 'test')));
+
+    $this->assertEqual($entities[0]->name, 'test', 'Created and loaded entity.');
+    $this->assertEqual($entities[1]->name, 'test', 'Created and loaded entity.');
+
+    $results = entity_test_load_multiple(array($entity->pid));
+    $loaded = array_pop($results);
+    $this->assertEqual($loaded->pid, $entity->pid, 'Loaded the entity unrelated to a user.');
+
+    $entities = array_values(entity_test_load_multiple(FALSE, array('name' => 'test2')));
+    $entities[0]->delete();
+    $entities = array_values(entity_test_load_multiple(FALSE, array('name' => 'test2')));
+    $this->assertEqual($entities, array(), 'Entity successfully deleted.');
+
+    $entity->save();
+    $this->assertEqual($entity->pid, $loaded->pid, 'Entity successfully updated.');
+
+    // Try deleting multiple test entities by deleting all.
+    $pids = array_keys(entity_test_load_multiple(FALSE));
+    entity_test_delete_multiple($pids);
+  }
+
+  /**
+   * Tests CRUD API functions: entity_(create|delete|save)
+   */
+  function testCRUDAPIfunctions() {
+    $user1 = $this->drupalCreateUser();
+    // Create test entities for the user1 and unrelated to a user.
+    $entity = entity_create('entity_test', array('name' => 'test', 'uid' => $user1->uid));
+    entity_save('entity_test', $entity);
+    $entity = entity_create('entity_test', array('name' => 'test2', 'uid' => $user1->uid));
+    entity_save('entity_test', $entity);
+    $entity = entity_create('entity_test', array('name' => 'test', 'uid' => NULL));
+    entity_save('entity_test', $entity);
+
+    $entities = array_values(entity_test_load_multiple(FALSE, array('name' => 'test')));
+    $this->assertEqual($entities[0]->name, 'test', 'Created and loaded entity.');
+    $this->assertEqual($entities[1]->name, 'test', 'Created and loaded entity.');
+
+    $results = entity_test_load_multiple(array($entity->pid));
+    $loaded = array_pop($results);
+    $this->assertEqual($loaded->pid, $entity->pid, 'Loaded the entity unrelated to a user.');
+
+    $entities = array_values(entity_test_load_multiple(FALSE, array('name' => 'test2')));
+
+    entity_delete('entity_test', $entities[0]->pid);
+    $entities = array_values(entity_test_load_multiple(FALSE, array('name' => 'test2')));
+    $this->assertEqual($entities, array(), 'Entity successfully deleted.');
+
+    entity_save('entity_test', $entity);
+    $this->assertEqual($entity->pid, $loaded->pid, 'Entity successfully updated.');
+
+    // Try deleting multiple test entities by deleting all.
+    $pids = array_keys(entity_test_load_multiple(FALSE));
+    entity_delete_multiple('entity_test', $pids);
+  }
+
+  /**
+   * Test loading entities defined in code.
+   */
+  function testExportables() {
+    $types = entity_load('entity_test_type', array('test', 'test2'));
+    $this->assertEqual($types['test']->label, 'label', 'Default type loaded.');
+    $this->assertTrue($types['test']->status & ENTITY_IN_CODE && !($types['test']->status & ENTITY_IN_DB), 'Default type status is correct.');
+
+    // Test using a condition, which has to be applied on the defaults.
+    $types = entity_load('entity_test_type', FALSE, array('label' => 'label'));
+    $this->assertEqual($types['test']->label, 'label', 'Condition to default type applied.');
+
+    $types['test']->label = 'modified';
+    $types['test']->save();
+
+    // Ensure loading the changed entity works.
+    $types = entity_load('entity_test_type', FALSE, array('label' => 'modified'));
+    $this->assertEqual($types['test']->label, 'modified', 'Modified type loaded.');
+
+    // Clear the cache to simulate a new page load.
+    entity_get_controller('entity_test_type')->resetCache();
+
+    // Test loading using a condition again, now they default may not appear any
+    // more as it's overridden by an entity with another label.
+    $types = entity_load('entity_test_type', FALSE, array('label' => 'label'));
+    $this->assertTrue(empty($types), 'Conditions are applied to the overridden entity only.');
+
+    // But the overridden entity has to appear with another condition.
+    $types = entity_load('entity_test_type', FALSE, array('label' => 'modified'));
+    $this->assertEqual($types['test']->label, 'modified', 'Modified default type loaded by condition.');
+
+    $types = entity_load('entity_test_type', array('test', 'test2'));
+    $this->assertEqual($types['test']->label, 'modified', 'Modified default type loaded by id.');
+    $this->assertTrue($types['test']->status & ENTITY_IN_CODE && $types['test']->status & ENTITY_IN_DB, 'Status of modified type is correct.');
+
+    // Test loading an exportable by its numeric id.
+    $result = entity_load('entity_test_type', array($types['test']->id));
+    $this->assertTrue(isset($result['test']), 'Exportable entity loaded by the numeric id.');
+
+    // Test exporting an entity to code.
+    $code = $types['test']->export();
+    $import = eval('return ' . $code . ';');
+    $this->assertTrue(get_class($import) == get_class($types['test']) && $types['test']->label == $import->label, 'Successfully exported entity to code.');
+    $this->assertTrue(!isset($import->status), 'Exportable status has not been exported to code.');
+  }
+
+  /**
+   * Tests viewing entites.
+   */
+  function testRendering() {
+    $user1 = $this->drupalCreateUser();
+    // Create test entities for the user1 and unrelated to a user.
+    $entity = entity_create('entity_test', array('name' => 'test', 'uid' => $user1->uid));
+
+    $render = $entity->view();
+    $output = drupal_render($render);
+    // The entity class adds the user name to the output. Verify it is there.
+    $this->assertTrue(strpos($output, format_username($user1)) !== FALSE, 'Entity has been rendered');
+  }
+}
+
+/**
+ * Test the generated Rules integration.
+ */
+class EntityAPIRulesIntegrationTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Entity CRUD Rules integration',
+      'description' => 'Tests the Rules integration provided by the Entity CRUD API.',
+      'group' => 'Entity API',
+      // Unfortunately the drupal.org testing bot doesn't pick that up yet, so
+      // this test is excluded from the automated tests. See #924090.
+      'dependencies' => array('rules'),
+    );
+  }
+
+  function setUp() {
+    parent::setUp('entity', 'entity_test', 'rules');
+  }
+
+  /**
+   * Test the events.
+   */
+  function testEvents() {
+    $rule = rules_reaction_rule();
+    $rule->event('entity_test_presave');
+    $rule->event('entity_test_insert');
+    $rule->event('entity_test_update');
+    $rule->event('entity_test_delete');
+    $rule->action('drupal_message', array('message' => 'hello!'));
+    $rule->save();
+    rules_clear_cache(TRUE);
+
+    // Let the events occur.
+    $user1 = $this->drupalCreateUser();
+    $entity = new EntityClass(array('name' => 'test', 'uid' => $user1->uid));
+    $entity->save();
+    $entity->name = 'update';
+    $entity->save();
+    $entity->delete();
+
+    // Now there should have been 5 events, 2 times presave and once insert,
+    // update and delete.
+
+    $count = substr_count(RulesLog::logger()->render(), '0 ms Reacting on event');
+    $this->assertTrue($count == 5, 'Events have been properly invoked.');
+    RulesLog::logger()->checkLog();
+  }
+
+}

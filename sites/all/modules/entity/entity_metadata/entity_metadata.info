@@ -1,0 +1,15 @@
+; $Id: entity_metadata.info,v 1.1.2.2 2010/09/29 09:27:57 fago Exp $
+name = Entity Metadata
+description = Provides more metadata for entities and a useful API to allow modules making use of it.
+core = 7.x
+files[] = entity_metadata.info.inc
+files[] = entity_metadata.module
+files[] = entity_metadata.test
+files[] = entity_metadata.tokens.inc
+files[] = entity_metadata.wrapper.inc
+; Information added by drupal.org packaging script on 2010-10-11
+version = "7.x-1.0-beta1"
+core = "7.x"
+project = "entity"
+datestamp = "1286786762"
+

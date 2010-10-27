@@ -1,0 +1,430 @@
+<?php
+// $Id: entity.module,v 1.1.2.16 2010/10/07 14:40:44 fago Exp $
+
+/**
+ * @file
+ * Module for the entity API.
+ */
+
+spl_autoload_register('entity_autoload');
+
+/**
+ * Autoload API includes. Note that the code registry autoload is used only
+ * by the providing API module.
+ */
+function entity_autoload($class) {
+  if (stripos($class, 'faces') === 0) {
+    module_load_include('inc', 'entity', 'faces');
+  }
+}
+
+/**
+ * Defines status codes used for exportable entities.
+ */
+
+/**
+ * A bit flag used to let us know if an entity is in the database.
+ */
+define('ENTITY_IN_DB', 0x01);
+
+/**
+ * A bit flag used to let us know if an entity is a 'default' in code.
+ */
+define('ENTITY_IN_CODE', 0x02);
+
+/**
+ * A bit flag used to mark entities as fixed, thus not changeable for any
+ * user.
+ */
+define('ENTITY_FIXED', 0x04);
+
+
+
+/**
+ * Permanently save an entity.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $entity
+ *   The entity to save.
+ * @return
+ *   Failure to write a record will return FALSE. Otherwise SAVED_NEW or
+ *   SAVED_UPDATED is returned depending on the operation performed. If the
+ *   given entity type isn't compatible to the CRUD API NULL is returned.
+ */
+function entity_save($entity_type, $entity) {
+  $info = entity_get_info($entity_type);
+  if (method_exists($entity, 'save')) {
+    return $entity->save();
+  }
+  elseif (in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
+    return entity_get_controller($entity_type)->save($entity);
+  }
+}
+
+/**
+ * Permanently delete the given entity.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $id
+ *   The uniform identifier of the entity to delete.
+ * @return
+ *   FALSE if the given entity type isn't compatible to the CRUD API.
+ */
+function entity_delete($entity_type, $id) {
+  $info = entity_get_info($entity_type);
+  if (isset($info['entity class']) && method_exists($info['entity class'], 'delete')) {
+    $entities = entity_load($entity_type, array($id));
+    reset($entities)->delete();
+  }
+  elseif (in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
+    entity_get_controller($entity_type)->delete(array($id));
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Permanently delete multiple entities.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $ids
+ *   An array of uniform identifiers of the entities to delete.
+ * @return
+ *   FALSE if the given entity type isn't compatible to the CRUD API.
+ */
+function entity_delete_multiple($entity_type, $ids) {
+  $info = entity_get_info($entity_type);
+  if (in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
+    entity_get_controller($entity_type)->delete($ids);
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Create a new entity.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $values
+ *   An array of values to set, keyed by property name. If the entity type has
+ *   bundles the bundle key has to be specified.
+ * @return
+ *   A new instance of the entity type or FALSE if the given entity type isn't
+ *   compatible to the CRUD API.
+ */
+function entity_create($entity_type, $values) {
+  $info = entity_get_info($entity_type);
+  if (in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
+    return entity_get_controller($entity_type)->create($values);
+  }
+  return FALSE;
+}
+
+/**
+ * Exports an entity.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $entity
+ *   The entity to export.
+ * @param $prefix
+ *   An optional prefix for each line.
+ * @return
+ *   The exported entity as code.
+ */
+function entity_export($entity_type, $entity, $prefix = '') {
+  $info = entity_get_info($entity_type);
+  if (method_exists($entity, 'export')) {
+    return $entity->export($prefix);
+  }
+  elseif (in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
+    return entity_get_controller($entity_type)->export($entity, $prefix);
+  }
+}
+
+/**
+ * Builds a structured array representing the entity's content.
+ *
+ * The content built for the entity will vary depending on the $view_mode
+ * parameter.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $entity
+ *   An entity object.
+ * @param $view_mode
+ *   A view mode as used by this entity type, e.g. 'full', 'teaser'...
+ * @param $langcode
+ *   (optional) A language code to use for rendering. Defaults to the global
+ *   content language of the current request.
+ * @return
+ *   The renderable array.
+ */
+function entity_build_content($entity_type, $entity, $view_mode = 'full', $langcode = NULL) {
+  $info = entity_get_info($entity_type);
+  if (method_exists($entity, 'buildContent')) {
+    return $entity->buildContent($view_mode, $langcode);
+  }
+  elseif (in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
+    return entity_get_controller($entity_type)->buildContent($entity, $view_mode, $langcode);
+  }
+}
+
+/**
+ * Returns the entity identifier.
+ *
+ * Unlike entity_extract_ids() this function returns the uniform identifier,
+ * thus if a name key is defined, the name of the entity is returned. Otherwise
+ * the usual numeric id is returned.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $entity
+ *   An entity object.
+ *
+ * @see entity_extract_ids()
+ */
+function entity_id($entity_type, $entity) {
+  $info = entity_get_info($entity_type);
+  if (isset($info['entity class']) && method_exists($info['entity class'], 'identifier')) {
+    return $entity->identifier();
+  }
+  $key = isset($info['entity keys']['name']) ? $info['entity keys']['name'] : $info['entity keys']['id'];
+  return isset($entity->$key) ? $entity->$key : NULL;
+}
+
+/**
+ * Generate an array for rendering the given entities.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $entities
+ *   An array of entities to render, keyed by their ids. E.g. as returned from
+ *   entity_load().
+ * @param $view_mode
+ *   A view mode as used by this entity type, e.g. 'full', 'teaser'...
+ * @param $langcode
+ *   (optional) A language code to use for rendering. Defaults to the global
+ *   content language of the current request.
+ * @return
+ *   The renderable array.
+ */
+function entity_view($entity_type, $entities, $view_mode = 'full', $langcode = NULL) {
+  $info = entity_get_info($entity_type);
+  if (in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
+    return entity_get_controller($entity_type)->view($entities, $view_mode, $langcode);
+  }
+}
+
+/**
+ * Determines whether the given user has access to an entity.
+ *
+ * @param $op
+ *   The operation being performed. One of 'view', 'update', 'create' or
+ *   'delete'.
+ * @param $entity_type
+ *   The entity type of the entity to check for.
+ * @param $entity
+ *   Optionally an entity to check access for. If no entity is given, it will be
+ *   determined whether access is allowed for all entities of the given type.
+ * @param $account
+ *   The user to check for. Leave it to NULL to check for the global user.
+ *
+ * @return boolean
+ *   Whether access is allowed or not. If the entity type does not specify any
+ *   access information, NULL is returned.
+ */
+function entity_access($op, $entity_type, $entity = NULL, $account = NULL) {
+  if (($info = entity_get_info()) && isset($info[$entity_type]['access callback'])) {
+    return $info[$entity_type]['access callback']($op, $entity, $account, $entity_type);
+  }
+}
+
+/**
+ * Returns an array of entity info for the entity types provided via the entity CRUD API.
+ */
+function entity_crud_get_info() {
+  $types = array();
+  foreach (entity_get_info() as $type => $info) {
+    if (isset($info['controller class']) && in_array('EntityAPIControllerInterface', class_implements($info['controller class']))) {
+      $types[$type] = $info;
+    }
+  }
+  return $types;
+}
+
+/**
+ * Export a variable. Copied from ctools.
+ *
+ * This is a replacement for var_export(), allowing us to more nicely
+ * format exports. It will recurse down into arrays and will try to
+ * properly export bools when it can.
+ */
+function entity_var_export($var, $prefix = '') {
+  if (is_array($var)) {
+    if (empty($var)) {
+      $output = 'array()';
+    }
+    else {
+      $output = "array(\n";
+      foreach ($var as $key => $value) {
+        $output .= "  '$key' => " . entity_var_export($value, '  ') . ",\n";
+      }
+      $output .= ')';
+    }
+  }
+  else if (is_bool($var)) {
+    $output = $var ? 'TRUE' : 'FALSE';
+  }
+  else {
+    $output = var_export($var, TRUE);
+  }
+
+  if ($prefix) {
+    $output = str_replace("\n", "\n$prefix", $output);
+  }
+  return $output;
+}
+
+/**
+ * Export a variable in pretty formatted JSON.
+ */
+function entity_var_json_export($var, $prefix = '') {
+  if (is_array($var) && $var) {
+    // Defines whether we use a JSON array or object.
+    $use_array = ($var == array_values($var));
+    $output = $use_array ? "[" : "{";
+
+    foreach ($var as $key => $value) {
+      if ($use_array) {
+        $values[] = entity_var_json_export($value, '  ');
+      }
+      else {
+        $values[] = entity_var_json_export((string) $key, '  ') . ' : ' . entity_var_json_export($value, '  ');
+      }
+    }
+    // Use several lines for long content. However for objects with a single
+    // entry keep the key in the first line.
+    if (strlen($content = implode(", ", $values)) > 70 && ($use_array || count($values) > 1)) {
+      $output .= "\n  " .  implode(",\n  ", $values) . "\n";
+    }
+    elseif (strpos($content, "\n") !== FALSE) {
+      $output .= " " .  $content . "\n";
+    }
+    else {
+      $output .= " " .  $content . " ";
+    }
+    $output .= $use_array ? "]" : "}";
+  }
+  else {
+    $output = drupal_json_encode($var);
+  }
+
+  if ($prefix) {
+    $output = str_replace("\n", "\n$prefix", $output);
+  }
+  return $output;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function entity_theme() {
+  return array(
+    'entity_status' => array(
+      'variables' => array('status' => NULL, 'html' => TRUE),
+    ),
+    'entity' => array(
+      'render element' => 'elements',
+      'template' => 'entity',
+    ),
+  );
+}
+
+/**
+ * Themes the exportable status of an entity.
+ */
+function theme_entity_status($variables) {
+  $status = $variables['status'];
+  $html = $variables['html'];
+  if ($status & ENTITY_FIXED) {
+    $label = t('Fixed');
+    $help = t('The configuration is fixed and cannot be changed.');
+    return $html ? "<span class='entity-status-fixed' title='$help'>" . $label . "</span>" : $label;
+  }
+  elseif ($status & ENTITY_IN_CODE && $status & ENTITY_IN_DB) {
+    $label = t('Overridden');
+    $help = t('This configuration is provided by a module, but has been changed.');
+    return $html ? "<span class='entity-status-overridden' title='$help'>" . $label . "</span>" : $label;
+  }
+  elseif ($status & ENTITY_IN_CODE) {
+    $label = t('Default');
+    $help = t('A module provides this configuration.');
+    return $html ? "<span class='entity-status-default' title='$help'>" . $label . "</span>" : $label;
+  }
+  elseif ($status & ENTITY_IN_DB) {
+    $label = t('Custom');
+    $help = t('A custom configuration by a user.');
+    return $html ? "<span class='entity-status-custom' title='$help'>" . $label . "</span>" : $label;
+  }
+}
+
+/**
+ * Process variables for entity.tpl.php.
+ */
+function template_preprocess_entity(&$variables) {
+  $variables['view_mode'] = $variables['elements']['#view_mode'];
+  $entity_type = $variables['elements']['#entity_type'];
+  $variables['entity_type'] = $entity_type;
+  $entity = $variables['elements']['#entity'];
+  $variables[$variables['elements']['#entity_type']] = $entity;
+  $info = entity_get_info($entity_type);
+
+  $variables['title']      = check_plain(entity_label($entity_type, $entity));
+  $uri = entity_uri($entity_type, $entity);
+  $variables['url'] = $uri ? url($uri['path'], $uri['options']) : FALSE;
+  $variables['page'] = $uri && $uri['path'] == $_GET['q'];
+
+  // Helpful $content variable for templates.
+  $variables['content'] = array();
+  foreach (element_children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+
+  if (!empty($info['fieldable'])) {
+    // Make the field variables available with the appropriate language.
+    field_attach_preprocess($entity_type, $entity, $variables['content'], $variables);
+  }
+  list(, , $bundle) = entity_extract_ids($entity_type, $entity);
+
+  // Gather css classes.
+  $variables['classes_array'][] = drupal_html_class('entity-' . $entity_type);
+  $variables['classes_array'][] = drupal_html_class($entity_type . '-' . $bundle);
+
+  // Add suggestions.
+  $variables['theme_hook_suggestions'][] = $entity_type;
+  $variables['theme_hook_suggestions'][] = $entity_type . '__' . $bundle;
+  if ($id = entity_id($entity_type, $entity)) {
+    $variables['theme_hook_suggestions'][] = $entity_type . '__' . $id;
+  }
+}
+
+/**
+ * Label callback that refers to the entity classes label method.
+ */
+function entity_class_label($entity) {
+  return $entity->label();
+}
+
+/**
+ * URI callback that refers to the entity classes uri method.
+ */
+function entity_class_uri($entity) {
+  return $entity->uri();
+}
