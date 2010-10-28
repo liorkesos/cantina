@@ -184,9 +184,9 @@ $databases = array (
     'default' => 
     array (
       'driver' => 'mysql',
-      'database' => 'cantina',
-      'username' => 'test',
-      'password' => 'test',
+      'database' => 'cantina7',
+      'username' => 'cantina',
+      'password' => 're1nvent',
       'host' => 'localhost',
       'port' => '3306',
       'prefix' => '',
