@@ -71,6 +71,11 @@
 
         <section id="content-crousel" class="region clearfix">
             <div class="container_12">
+				<?php if ($page['featured']): ?>
+				    <div id="featured"><div class="section clearfix">
+				      <?php print render($page['featured']); ?>
+				    </div></div> <!-- /.section, /#featured -->
+				  <?php endif; ?>	
                 <div class="block grid_12 alpha omega">
                     <div id="carousel">
                         <ul>
