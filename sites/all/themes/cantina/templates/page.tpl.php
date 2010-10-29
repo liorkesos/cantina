@@ -76,15 +76,6 @@
 				      <?php print render($page['featured']); ?>
 				    </div></div> <!-- /.section, /#featured -->
 				  <?php endif; ?>	
-                <div class="block grid_12 alpha omega">
-                    <div id="carousel">
-                        <ul>
-                            <li class="grid_12"><a href="#" class="ir">אודות - נמל</a></li>
-                            <li class="grid_12"><a href="#" class="ir test">קרן</a></li>
-                            <li class="grid_12"><a href="#" class="ir">ציונות</a></li>
-                        </ul>
-                    </div>
-                </div>
             </div>
         </section>
 
