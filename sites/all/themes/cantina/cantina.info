@@ -19,6 +19,7 @@ regions[highlighted] = Highlighted
 
 regions[featured] = Featured
 regions[content] = Content
+regions[carousel] = Carousel
 regions[sidebar_first] = Sidebar first
 regions[sidebar_second] = Sidebar second
 
