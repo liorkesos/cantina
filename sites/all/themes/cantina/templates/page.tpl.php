@@ -80,21 +80,52 @@
 			  <?php endif; ?>	
             </div>
         </section>
+		 <div class="container_12">
+				<section id="content-main" class="region grid_7 alpha">
+  <?php else: ?>	
+				  <div class="container_12">
+						<section id="content-main" class="region grid_9 alpha">
   <?php endif; ?>	
 
-        <div class="container_12">
-			<section id="content-main" class="region grid_7 alpha">
+       
 				<?php if ($messages): ?>
 				    <div id="messages"><div class="section clearfix">
 				      <?php print $messages; ?>
 				    </div></div> <!-- /.section, /#messages -->
 				<?php endif; ?>
                 <div class="node">
-					<?php print render($page['content']); ?>
+					<div id="content" class="column"><div class="section">
+				      <?php if ($page['highlighted']): ?><div id="highlighted"><?php print render($page['highlighted']); ?></div><?php endif; ?>
+				      <a id="main-content"></a>
+				      <?php print render($title_prefix); ?>
+				      <?php if ($title): ?>
+				        <h1 class="title" id="page-title">
+				          <?php print $title; ?>
+				        </h1>
+				      <?php endif; ?>
+				      <?php print render($title_suffix); ?>
+				      <?php if ($tabs): ?>
+				        <div class="tabs">
+				          <?php print render($tabs); ?>
+				        </div>
+				      <?php endif; ?>
+				      <?php print render($page['help']); ?>
+				      <?php if ($action_links): ?>
+				        <ul class="action-links">
+				          <?php print render($action_links); ?>
+				        </ul>
+				      <?php endif; ?>
+				      <?php print render($page['content']); ?>
+				      <?php print $feed_icons; ?>
+
                 </div>
             </section>
-
+			<?php if (drupal_is_front_page()): ?>
             <section id="content-social" class="region grid_5 omega">
+			<?php else: ?>
+	        <section id="content-social" class="region grid_3 omega">
+			<?php endif; ?>
+			
                 <div class="block">
 				 <?php if ($page['sidebar_first']): ?>
 				      <div id="sidebar-first" class="column sidebar"><div class="section">
