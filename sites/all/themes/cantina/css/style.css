@@ -262,7 +262,7 @@ nav #main-menu-links a{display:block;padding:5px;}
 
 /* Crousel */
 
-#content-crousel{background:#38be51;}
+#content-crousel{height:240px;background:#38be51;}
 /*
 #carousel{overflow:hidden;}
 #carousel ul{width:2880px;}
