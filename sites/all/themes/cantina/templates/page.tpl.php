@@ -70,7 +70,7 @@
                 </div>
             </div>
         </section>
-
+	<?php if (drupal_is_front_page()): ?>
 			<section id="content-crousel" class="region clearfix">
             	<div class="container_12">
 				<?php if ($page['featured']): ?>		
@@ -80,6 +80,7 @@
 			  <?php endif; ?>	
             </div>
         </section>
+  <?php endif; ?>	
 
         <div class="container_12">
 			<section id="content-main" class="region grid_7 alpha">
