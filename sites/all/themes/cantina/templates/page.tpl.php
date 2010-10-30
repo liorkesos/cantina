@@ -60,40 +60,46 @@
         <section id="content-intro" class="region clearfix">
             <div class="container_12">
                 <div class="block grid_7 alpha">
-                    <p>הקנטינה הנה מרכז כנסים וחממה טכנולוגית העוסקת בקוד פתוח</p>
+                    <p><?php 
+						$node = node_load(2);
+						print $node->body['he'][0]['value']; ?></p>
                     <h2><?php print $site_slogan; ?></h2>
                 </div>
                 <div class="block grid_5 omega">
-                    <div id="logo-video"><a href="#" class="ir">לוגו/וידאו</a></div>
+                    <div id="logo-video"><a href="/node" class="ir">לוגו/וידאו</a></div>
                 </div>
             </div>
         </section>
 
-        <section id="content-crousel" class="region clearfix">
-            <div class="container_12">
-				<?php if ($page['featured']): ?>
-				    <div id="featured"><div class="section clearfix">
-				      <?php print render($page['featured']); ?>
-				    </div></div> <!-- /.section, /#featured -->
-				  <?php endif; ?>	
+			<section id="content-crousel" class="region clearfix">
+            	<div class="container_12">
+				<?php if ($page['featured']): ?>		
+					<div id="featured"><div class="section clearfix">
+					<?php print render($page['featured']); ?>
+			    </div></div> <!-- /.section, /#featured -->
+			  <?php endif; ?>	
             </div>
         </section>
 
         <div class="container_12">
-		 <?php if ($messages): ?>
-		    <div id="messages"><div class="section clearfix">
-		      <?php print $messages; ?>
-		    </div></div> <!-- /.section, /#messages -->
-		  <?php endif; ?>
-            <section id="content-main" class="region grid_7 alpha">
+			<section id="content-main" class="region grid_7 alpha">
+				<?php if ($messages): ?>
+				    <div id="messages"><div class="section clearfix">
+				      <?php print $messages; ?>
+				    </div></div> <!-- /.section, /#messages -->
+				<?php endif; ?>
                 <div class="node">
-                    תכנים מקודמים
+					<?php print render($page['content']); ?>
                 </div>
             </section>
 
             <section id="content-social" class="region grid_5 omega">
                 <div class="block">
-                    רשתות חברתיות
+				 <?php if ($page['sidebar_first']): ?>
+				      <div id="sidebar-first" class="column sidebar"><div class="section">
+				        <?php print render($page['sidebar_first']); ?>
+				      </div></div> <!-- /.section, /#sidebar-first -->
+				 <?php endif; ?>
                 </div>
             </section>
         </div>
@@ -102,7 +108,6 @@
 
     <footer class="clearfix region">
         <div class="container_12">
-			<?php print render($page['content']); ?>
 	
             <div class="block grid_7 alpha">
                 ניווט תחתון וקופי
