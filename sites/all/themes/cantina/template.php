@@ -4,7 +4,8 @@
 /**
  * Add body classes if certain regions have content.
  */
-function bartik_preprocess_html(&$variables) {
+function cantina_preprocess_html(&$variables) {
+	
   if (!empty($variables['page']['featured'])) {
     $variables['classes_array'][] = 'featured';
   }
@@ -30,7 +31,7 @@ function bartik_preprocess_html(&$variables) {
 /**
  * Override or insert variables into the page template for HTML output.
  */
-function bartik_process_html(&$variables) {
+function cantina_process_html(&$variables) {
   // Hook into color.module.
   if (module_exists('color')) {
     _color_html_alter($variables);
@@ -40,7 +41,8 @@ function bartik_process_html(&$variables) {
 /**
  * Override or insert variables into the page template.
  */
-function bartik_process_page(&$variables) {
+function cantina_process_page(&$variables) {
+ dpm($variables);
   // Hook into color.module.
   if (module_exists('color')) {
     _color_page_alter($variables);
@@ -77,14 +79,14 @@ function bartik_process_page(&$variables) {
 /**
  * Implements hook_preprocess_maintenance_page().
  */
-function bartik_preprocess_maintenance_page(&$variables) {
+function cantina_preprocess_maintenance_page(&$variables) {
   drupal_add_css(drupal_get_path('theme', 'bartik') . '/css/maintenance-page.css');
 }
 
 /**
  * Override or insert variables into the maintenance page template.
  */
-function bartik_process_maintenance_page(&$variables) {
+function cantina_process_maintenance_page(&$variables) {
   // Always print the site name and slogan, but if they are toggled off, we'll
   // just hide them visually.
   $variables['hide_site_name']   = theme_get_setting('toggle_name') ? FALSE : TRUE;
@@ -102,7 +104,7 @@ function bartik_process_maintenance_page(&$variables) {
 /**
  * Override or insert variables into the block template.
  */
-function bartik_preprocess_block(&$variables) {
+function cantina_preprocess_block(&$variables) {
   // In the header region visually hide block titles.
   if ($variables['block']->region == 'header') {
     $variables['title_attributes_array']['class'][] = 'element-invisible';
