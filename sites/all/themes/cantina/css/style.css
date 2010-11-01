@@ -222,7 +222,7 @@ button {  width: auto; overflow: visible; }
 @font-face {
     font-family: 'HadasimCLM';
     src: url('../fonts/hadasimclm-regular-webfont.eot');
-    src: local('Hadasim CLM'), local('HadasimCLMRegular'), url('h../fonts/adasimclm-regular-webfont.woff') format('woff'), url('../fonts/hadasimclm-regular-webfont.ttf') format('truetype'), url('../fonts/hadasimclm-regular-webfont.svg#webfont730fxkSc') format('svg');
+    src: local('Hadasim CLM'), local('HadasimCLMRegular'), url('../fonts/hadasimclm-regular-webfont.woff') format('woff'), url('../fonts/hadasimclm-regular-webfont.ttf') format('truetype'), url('../fonts/hadasimclm-regular-webfont.svg#webfont730fxkSc') format('svg');
     font-weight: normal;
     font-style: normal;
 }
