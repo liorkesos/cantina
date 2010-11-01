@@ -36,13 +36,13 @@
 ?><!doctype html>
 
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
-<!--[if lt IE 7 ]> <html lang="<?php print $language->language; ?>" dir="<?php print $language->dir; ?>" class="no-js ie ie6 lte7 lte8 lte9"> <![endif]-->
-<!--[if IE 7 ]>    <html lang="<?php print $language->language; ?>" dir="<?php print $language->dir; ?>" class="no-js ie ie7 lte7 lte8 lte9"> <![endif]-->
-<!--[if IE 8 ]>    <html lang="<?php print $language->language; ?>" dir="<?php print $language->dir; ?>" class="no-js ie ie8 lte8 lte9"> <![endif]-->
-<!--[if IE 9 ]>    <html lang="<?php print $language->language; ?>" dir="<?php print $language->dir; ?>" class="no-js ie ie9 lte9"> <![endif]-->
-<!--[if (gt IE 9)|!(IE)]><!--> <html lang="<?php print $language->language; ?>" dir="<?php print $language->dir; ?>" class="no-js"> <!--<![endif]-->
+<!--[if lt IE 7 ]> <html lang="<?php print $language->language; ?>" dir="<?php print $language->dir; ?>" version="XHTML+RDFa 1.0" <?php print $rdf_namespaces?> class="no-js ie ie6 lte7 lte8 lte9"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="<?php print $language->language; ?>" dir="<?php print $language->dir; ?>" version="XHTML+RDFa 1.0" <?php print $rdf_namespaces?> class="no-js ie ie7 lte7 lte8 lte9"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="<?php print $language->language; ?>" dir="<?php print $language->dir; ?>" version="XHTML+RDFa 1.0" <?php print $rdf_namespaces?> class="no-js ie ie8 lte8 lte9"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="<?php print $language->language; ?>" dir="<?php print $language->dir; ?>" version="XHTML+RDFa 1.0" <?php print $rdf_namespaces?> class="no-js ie ie9 lte9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html lang="<?php print $language->language; ?>" dir="<?php print $language->dir; ?>" version="XHTML+RDFa 1.0" <?php print $rdf_namespaces?> class="no-js"> <!--<![endif]-->
 
-<head>
+<head profile="<?php print $grddl_profile; ?>">
 
     <?php print $head; ?>
 
