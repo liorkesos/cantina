@@ -48,9 +48,9 @@
               </div>
          </section>
      <?php endif; ?>
-
-         <div class="container_12">
-                <section id="content-main" class="region grid_7 alpha">
+         <div id="content-main" class="clearfix">
+            <div class="container_12">
+                <section id="content" class="region grid_7 alpha">
 
                 <?php if ($messages): ?>
                     <div id="messages">
@@ -97,7 +97,7 @@
             </section>
 
             <?php //if (drupal_is_front_page()): ?>
-            <section id="content-social" class="region grid_5 omega">
+            <section id="content-sidebar" class="region grid_5 omega">
                 <div class="block">
                  <?php if ($page['sidebar_first']): ?>
                       <div id="sidebar-first" class="column sidebar"><div class="section">
@@ -106,6 +106,7 @@
                  <?php endif; ?>
                 </div>
             </section>
+        </div>
         </div>
 
     </div>
