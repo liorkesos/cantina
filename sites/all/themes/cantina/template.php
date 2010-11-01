@@ -42,7 +42,6 @@ function cantina_process_html(&$variables) {
  * Override or insert variables into the page template.
  */
 function cantina_process_page(&$variables) {
- dpm($variables);
   // Hook into color.module.
   if (module_exists('color')) {
     _color_page_alter($variables);
