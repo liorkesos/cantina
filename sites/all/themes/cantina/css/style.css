@@ -250,18 +250,26 @@ nav #main-menu-links a{display:block;padding:5px;}
 */
 
 /* Intro */
-#content-intro{background:#444;
-    -moz-box-shadow:inset -30px -30px 150px 60px #222;
-    -webkit-box-shadow:inset 10px -30px 120px 40px #222;
-    box-shadow:inset 10px -30px 120px 40px #222; }
+#content-intro,
+#content-inner-intro{
+          background:#444;
+          background:-webkit-gradient(linear,left bottom,left top,color-stop(0, #444),color-stop(0.25, #333),color-stop(0.75, #333),color-stop(1, #444));
+          background:-moz-linear-gradient(center bottom, #444 0%, #333 25%, #333 75%, #444 100%);
+     -moz-box-shadow:inset 0 5px 15px #222;
+  -webkit-box-shadow:inset 0 5px 15px #222;
+          box-shadow:inset 0 5px 15px #222;
+}
 #content-intro p,
-#content-intro h2{font-family:HadasimCLM, 'Arial Hebrew', Arial, sans-serif;color:#fff;text-shadow:1px 1px 4px #000;padding-right:25px;}
+#content-intro h2,
+#content-inner-intro h2{font-family:HadasimCLM, 'Arial Hebrew', Arial, sans-serif;color:#fff;text-shadow:1px 1px 4px #000;padding-right:25px;}
 
 #content-intro p{font-size:2.133em;padding-top:.6em;padding-bottom:.6em;text-align:justify;}
-#content-intro h2{font-size:3em;font-weight:bold;letter-spacing: -1pt; }
-
+#content-intro h2,
+#content-inner-intro h2{font-size:3em;font-weight:bold;letter-spacing: -1pt; }
+#content-inner-intro h2{padding: .3em 0; }
 /* Logo */
 #logo-video a{display:block;width:370px;height:275px;background:url(../images/logo.png) no-repeat 0 0;}
+#logo-small a{display:block;width:135px;height:100px;background:url(../images/logo-small.png) no-repeat 0 0;position:absolute;left:0;top:-15px;}
 
 /* Crousel */
 
@@ -275,9 +283,9 @@ nav #main-menu-links a{display:block;padding:5px;}
 */
 /* Content */
 #content-main{ padding:1.5em 0;
-    -moz-box-shadow:inset 0 5px 15px #ccc;
-    -webkit-box-shadow:inset 0 5px 15px #ccc;
-    box-shadow:inset 0 5px 15px #ccc;
+     -moz-box-shadow:inset 0 5px 15px #ccc;
+  -webkit-box-shadow:inset 0 5px 15px #ccc;
+         box-shadow:inset 0 5px 15px #ccc;
 }
 #content,
 #content-sidebar{min-height:300px;}
@@ -311,6 +319,8 @@ nav #main-menu-links a{display:block;padding:5px;}
 .node th { font-weight:bold; padding:.6em .3em; border:1px solid #999; }
 .node td { padding:.3em; border:1px solid #999; }
 
+.tabs ul,
+.tabs li{padding-bottom:0;}
 /* Footer */
 footer{ padding:1em 0;
   background-color: #38be51;
