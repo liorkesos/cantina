@@ -22,7 +22,6 @@
     </header>
 
     <div id="main" class="clearfix">
-
         <section id="content-inner-intro" class="region clearfix">
             <div class="container_12">
                 <div class="block grid_7 alpha">

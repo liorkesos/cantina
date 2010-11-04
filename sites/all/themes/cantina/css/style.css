@@ -235,12 +235,40 @@ button {  width: auto; overflow: visible; }
     font-style: normal;
 }
 
+@font-face {
+    font-family: 'Neve_Zedeq_OE';
+    src: url('../fonts/neve_zedeq_oebold-webfont.eot');
+    src: local('☺'), url('../fonts/neve_zedeq_oebold-webfont.woff') format('woff'), url('../fonts/neve_zedeq_oebold-webfont.svg#webfontFbELOGwu') format('svg');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Neve_Zedeq_OE';
+    src: url('../fonts/neve_zedeq_oelight-webfont.eot');
+    src: local('☺'), url('../fonts/neve_zedeq_oelight-webfont.woff') format('woff'), url('../fonts/neve_zedeq_oelight-webfont.svg#webfont709ZT4bB') format('svg');
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Neve_Zedeq_OE';
+    src: url('../fonts/neve_zedeq_oeregular-webfont.eot');
+    src: local('☺'), url('../fonts/neve_zedeq_oeregular-webfont.woff') format('woff'), url('../fonts/neve_zedeq_oeregular-webfont.svg#webfonthojTm65Z') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
 
 
 /* Navigation menus */
-nav #main-menu-links ul{padding:0 15px 0 20px;}
-nav #main-menu-links li{display:inline-block;padding:0 .5em}
-nav #main-menu-links a{display:block;padding:5px;}
+nav #main-menu-links ul{padding:0 15px 0 20px; }
+nav #main-menu-links li{display:inline-block;padding:0 .5em; text-decoration:none; }
+nav #main-menu-links a{ display:block;padding:5px; font-size: 1.25em; font-family:Neve_Zedeq_OE, 'Arial Hebrew', Arial, sans-serif; font-weight:200; text-decoration:none;}
+nav #main-menu-links a.active { font-weight:normal; text-shadow: 1px 1px 1px #999; color:#0a701d; }
+nav #main-menu-links a:hover,
+nav #main-menu-links a:focus,
+nav #main-menu-links a:active{ color:#fff; background:#282828; }
+
 #login{padding-top:5px;text-align:left;}
 
 /* Wireframe
@@ -261,14 +289,14 @@ nav #main-menu-links a{display:block;padding:5px;}
 }
 #content-intro p,
 #content-intro h2,
-#content-inner-intro h2{font-family:HadasimCLM, 'Arial Hebrew', Arial, sans-serif;color:#fff;text-shadow:1px 1px 4px #000;padding-right:25px;}
+#content-inner-intro h2{font-family:Neve_Zedeq_OE, 'Arial Hebrew', Arial, sans-serif; color:#fff;text-shadow:1px 1px 4px #000;padding-right:5px;}
 
-#content-intro p{font-size:2.133em;padding-top:.6em;padding-bottom:.6em;text-align:justify;}
+#content-intro p{font-size:2.6em;padding-top:1em;padding-bottom:.3em; font-weight:200; letter-spacing: .5pt; }
 #content-intro h2,
-#content-inner-intro h2{font-size:3em;font-weight:bold;letter-spacing: -1pt; }
-#content-inner-intro h2{padding: .3em 0; }
+#content-inner-intro h2{font-size:3.3em;font-weight:bold; letter-spacing: .3pt; }
+#content-inner-intro h2{padding: .27em 0 .1em; font-weight:normal; }
 /* Logo */
-#logo-video a{display:block;width:370px;height:275px;background:url(../images/logo.png) no-repeat 0 0;}
+#logo-video a{display:block;width:370px;height:265px;background:url(../images/logo.png) no-repeat 0 0; position:relative; left:-20px; }
 #logo-small a{display:block;width:135px;height:100px;background:url(../images/logo-small.png) no-repeat 0 0;position:absolute;left:0;top:-15px;}
 
 /* Crousel */
@@ -291,19 +319,21 @@ nav #main-menu-links a{display:block;padding:5px;}
 #content-sidebar{min-height:300px;}
 
 /* Textual content (RTL) */
-.node h1{ font-size:2.666em; line-height:1.1333em; letter-spacing: -1.2pt; }
-.node h2{ font-size:2.133em; line-height:1.1333em; letter-spacing: -.7pt; }
-.node h3{ font-size:1.666em; line-height:1.1333em; }
-.node h4{ font-size:1.333em; line-height:1.1333em; }
-.node h5{ font-size:1.083em; line-height:1.1333em; }
-.node h6{ font-size:1em; line-height:1.1333em; }
+h1,h2,h3,h4,h5,h6 { font-family:Neve_Zedeq_OE, 'Arial Hebrew', Arial, sans-serif; font-weight:200}
+
+.node h1{ font-size:3.3em; line-height:1.1333em; letter-spacing: -.1pt; font-weight:normal; text-shadow: 1px 1px 3px #888;}
+.node h2{ font-size:3em; line-height:1.1333em; letter-spacing: -.1pt; text-shadow: 1px 1px 2px #999;}
+.node h3{ font-size:2.3em; line-height:1.1333em; text-shadow: 1px 1px 1px #aaa;}
+.node h4{ font-size:1.666em; line-height:1.25em; text-shadow: 1px 1px 1px #aaa;}
+.node h5{ font-size:1.25em; line-height:1.333em; font-weight:normal; }
+.node h6{ font-size:1.133em; line-height:1.5em; }
 .node p,
 .node ol,
-.node ul{ padding-bottom:1em; }
+.node ul{ padding-bottom:1em; line-height:1.5em; }
 .node p{ font-size:1.133em; }
 .node ol{ margin-right:1.8em; }
 .node ul{ margin-right:1.8em; }
-.node li{ padding-bottom:.5em; font-size:1.133em; }
+.node li{ padding-bottom:.2em; font-size:1.133em; }
 .node li li{ font-size:1em; }
 .node code,
 .node pre { direction:ltr; font-family:'Lucida Console',Monaco,monospace; }
