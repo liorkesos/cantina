@@ -321,10 +321,10 @@ nav #main-menu-links a:active{ color:#fff; background:#282828; }
 /* Textual content (RTL) */
 h1,h2,h3,h4,h5,h6 { font-family:Neve_Zedeq_OE, 'Arial Hebrew', Arial, sans-serif; font-weight:200}
 
-.node h1{ font-size:3.3em; line-height:1.1333em; letter-spacing: -.1pt; font-weight:normal; text-shadow: 1px 1px 3px #888;}
-.node h2{ font-size:3em; line-height:1.1333em; letter-spacing: -.1pt; text-shadow: 1px 1px 2px #999;}
-.node h3{ font-size:2.3em; line-height:1.1333em; text-shadow: 1px 1px 1px #aaa;}
-.node h4{ font-size:1.666em; line-height:1.25em; text-shadow: 1px 1px 1px #aaa;}
+.node h1{ font-size:3em; line-height:1.1333em; letter-spacing: -.1pt; font-weight:normal; text-shadow: 1px 1px 3px #999;}
+.node h2{ font-size:2.3em; line-height:1.1333em; letter-spacing: -.1pt; font-weight:normal; text-shadow: 1px 1px 2px #aaa;}
+.node h3{ font-size:1.833em; line-height:1.1333em; text-shadow: 1px 1px 1px #bbb;}
+.node h4{ font-size:1.5em; line-height:1.25em; text-shadow: 1px 1px 1px #bbb;}
 .node h5{ font-size:1.25em; line-height:1.333em; font-weight:normal; }
 .node h6{ font-size:1.133em; line-height:1.5em; }
 .node p,
