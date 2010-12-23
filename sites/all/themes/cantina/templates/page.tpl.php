@@ -16,7 +16,7 @@
                 )); ?>
             </nav>
             <div id="login" class="block grid_2 omega">
-                <a href="#">כניסה</a>
+                <a href="/user"><?php print t("login");?></a>
             </div>
         </div>
     </header>
@@ -111,7 +111,7 @@
         <div class="container_12">
 
             <div class="block grid_7 alpha">
-                ניווט תחתון וקופי
+              <?php print render($page['credits']); ?>
             </div>
             <div class="block grid_5 omega">
                 לוגואים
