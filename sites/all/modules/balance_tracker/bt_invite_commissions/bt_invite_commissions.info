@@ -1,0 +1,15 @@
+; $Id: bt_invite_commissions.info,v 1.1 2009/07/15 14:45:01 brianV Exp $
+name = Invite Commissions
+description = "Credit a commission for any purchases made by invited users to their inviter."
+package = Balance Tracker
+core = 6.x
+dependencies[] = date_popup
+dependencies[] = ca
+dependencies[] = invite
+
+; Information added by drupal.org packaging script on 2010-07-11
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "balance_tracker"
+datestamp = "1278833501"
+

@@ -1,0 +1,45 @@
+# $Id
+
+Balance Tracker x.x-x.x, xxxx-xx-xx
+-----------------------------------
+More 7.x porting fixes.
+More 7.x porting fixes.
+Coding style fixes.
+Begin port to 7.x
+
+Balance Tracker 6.x-1.5, 2009-11-10
+-----------------------------------
+#519770 by kidrobot: Initial commit of views integration code.
+#626068 by brianV: Sort queries by bid instead of timestamp.
+
+Balance Tracker 6.X-1.4, 2009-07-15
+-----------------------------------
+by brianV: Give the admin the option of displaying current balances in user profiles.
+by brianV: initial commit of the Invite Commissions module.
+#507438 by brianV: Add missing t()s and generate new .pot
+
+Balance Tracker 6.X-1.3, 2009-06-29
+-----------------------------------
+by brianV: update CHANGELOG and tag for 1.3.
+by brianV: Slight code reorganization - put the hook functions together.
+#505050 by brianV: Fix admin/reports/balances showing 0 for user balances.
+#502952 by brianV: Create a hook_update_N() entry, so the saved variable will be retained.
+#502952 by brianV: Rename balance_tracker_custom_format to balance_tracker_custom_date_format.
+by BrianV: create hook_balance_prewrite().
+by brianV: Create a hook_balance_write that is called after a balance is successfully written.
+#502952 by brianV: create date format settings on admin page, and format dates accordingly.
+
+Balance Tracker 6.X-1.2, 2009-06-26
+-----------------------------------
+by BrianV: bugfix with form values no longer saving correctly.
+#502458 by brianV: Finish allowing multiple currency formats.
+by brianV: Create settings page and add currency format settings.
+
+Balance Tracker 6.X-1.1, 2009-06-25
+-----------------------------------
+by BrianV: Small issue with the info file not working with Update Status.
+
+Balance Tracker 6.X-1.0, 2009-06-25
+-----------------------------------
+Initial release of balance_tracker module.
+

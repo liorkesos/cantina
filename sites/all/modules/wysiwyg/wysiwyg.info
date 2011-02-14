@@ -1,0 +1,21 @@
+; $Id: wysiwyg.info,v 1.5 2010/10/18 20:20:29 sun Exp $
+name = Wysiwyg
+description = Allows users to edit contents with client-side editors.
+package = User interface
+;dependencies[] = libraries
+;dependencies[] = ctools
+;dependencies[] = popups
+;dependencies[] = debug
+core = 7.x
+configure = admin/config/content/wysiwyg
+files[] = wysiwyg.module
+files[] = wysiwyg.install
+files[] = wysiwyg.admin.inc
+files[] = wysiwyg.dialog.inc
+
+; Information added by drupal.org packaging script on 2010-12-20
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "wysiwyg"
+datestamp = "1292848057"
+

@@ -1,0 +1,131 @@
+<?php
+// $Id: bt_invite_commissions.module,v 1.1 2009/07/15 14:45:01 brianV Exp $
+
+/**
+ * @file
+ * The .module file for the BT Invite Commissions module.
+ */
+
+/**
+ * Implementation of hook_perm().
+ */
+function bt_invite_commissions_perm() {
+  return array('administer commission amounts', 'receive commission payments');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function bt_invite_commissions_menu() {
+  $items['admin/settings/invite_commissions'] = array(
+    'title' => 'Invite Commissions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bt_invite_commissions_form'),
+    'access arguments' => array('administer commission amounts'),
+    'description' => 'Configure the commission amounts',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Administration form to set commission levels.
+ */
+function bt_invite_commissions_form($form_state) {
+
+  $form['bt_invite_commissions'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Commission Percentage'),
+    '#field_suffix' => '%',
+    '#size' => 5,
+    '#default_value' => variable_get('bt_invite_commissions', 10),
+    '#description' => t('Please enter a percentage of the subtotal to pay a user if a user they have invited has made a purchase.'),
+    '#maxlength' => 128,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  return $form;
+}
+
+/**
+ * Validation for the administration form used to set commission levels.
+ */
+function bt_invite_commissions_form_validate($form, &$form_state) {
+
+  // Check the submitted percentage level.
+  $value = $form_state['values']['bt_invite_commissions'];
+  if (!is_numeric($value)) {
+    form_set_error('bt_invite_commissions', t('Commission percentages must be numberical values between 0 and 100.'));
+  }
+  else if ($value < 0 || $value > 100) {
+    form_set_error('bt_invite_commissions', t('Commission percentages must be numberical values between 0 and 100.'));
+  }
+}
+
+/**
+ * Submit functions for the administration form used to set commission levels.
+ */
+function bt_invite_commissions_form_submit($form, &$form_state) {
+  variable_set('bt_invite_commissions', $form_state['values']['bt_invite_commissions']);
+
+  drupal_set_message(t('Invite Commissions settings saved.'));
+}
+
+/**
+ * Implementation of hook_ca_action().
+ */
+function bt_invite_commissions_ca_action() {
+  $actions = array();
+
+  $actions['bt_invite_commission_pay_commissions'] = array(
+    '#title' => t('Pay Commissions to inviting user.'),
+    '#category' => t('Commission'),
+    '#callback' => 'bt_invite_commissions_pay_commissions',
+    '#arguments' => array(
+      'order' => array('#entity' => 'uc_order', '#title' => t('Order')),
+    ),
+  );
+
+  return $actions;
+}
+
+/**
+ * Callback for the bt_invite_commission_pay_commissions conditional action.
+ */
+function bt_invite_commissions_pay_commissions(&$order, $settings) {
+
+  $purchase_user = user_load($order->uid);
+  // If the user is not allowed to recieve payments, return early;
+  if (!user_access('receive commission payments', $purchase_user)) {
+    return;
+  }
+
+  // Get the ancestor of the user who made this order. If no ancestor is found,
+  // return early.
+  $results = db_query('SELECT * FROM {invite} WHERE invitee = %d AND joined > 0', array($order->uid));
+  if ($result = db_fetch_object($results)) {
+    $ancestor_uid = $result->uid;
+  }
+  else {
+    return;
+  }
+
+  // Get the subtotal of the order, so we don't pay commission on shipping or tax.
+  foreach ($order->line_items as $line_item) {
+    if ($line_item['line_item_id'] == 'subtotal') {
+      $subtotal = $line_item['amount'];
+    }
+  }
+
+  // Get the commission percentage we set, and calculate the commission.
+  $percentage = variable_get('bt_invite_commissions', 10);
+  $amount = round(.01 * $percentage * $subtotal, 2);
+
+  // Credit the account.
+  balance_tracker_credit_account($ancestor_uid, $amount, t('Commission paid: @percentage% of @subtotal.', array('@percentage' => $percentage, '@subtotal' => balance_tracker_format_currency($subtotal))));
+  
+  return;
+}

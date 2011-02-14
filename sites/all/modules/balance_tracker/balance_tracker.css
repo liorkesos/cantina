@@ -1,0 +1,15 @@
+/* $Id */
+
+td .credit {
+  color: #33bb33;
+  font-weight: bold;
+}
+
+td .debit {
+  color: #bb3333;
+  font-weight: bold;
+}
+
+#balance-tracker-date-form .date-clear-block {
+  display: inline-block;
+}

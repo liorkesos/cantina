@@ -1,0 +1,86 @@
+ <?php
+// $Id: balance_tracker.install,v 1.4 2010/01/02 19:34:38 brianV Exp $
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Balance Tracker module.
+ */
+
+/**
+ * Implementation of hook_schema().
+ */
+function balance_tracker_schema() {
+  $schema['balance_items'] = array(
+   'description' => 'Stores user balance items',
+   'fields' => array(
+     'bid' => array(
+       'description' => 'The unique identifier for this balance item.',
+       'type' => 'serial',
+       'not null' => TRUE,
+       'disp-width' => '11',
+     ),
+     'uid' => array(
+       'description' => 'The UID of the user this item belongs to.',
+       'type' => 'int',
+       'not null' => TRUE,
+       'disp-width' => '11',
+     ),
+     'timestamp' => array(
+       'description' => 'The timestamp this item was created.',
+       'type' => 'int',
+       'not null' => FALSE,
+       'disp-width' => '11',
+     ),
+     'type' => array(
+       'description' => 'Whether this item is a credit or debit.',
+       'type' => 'varchar',
+       'length' => '255',
+       'not null' => FALSE,
+     ),
+     'message' => array(
+       'description' => 'Log message related to this item.',
+       'type' => 'varchar',
+       'length' => '255',
+       'not null' => FALSE,
+     ),
+     'amount' => array(
+       'description' => 'The amount credited or debited with this transaction.',
+       'type' => 'float',
+       'not null' => FALSE,
+       'disp-width' => '10',
+     ),
+     'balance' => array(
+       'description' => 'The balance once this transaction has taken place.',
+       'type' => 'float',
+       'not null' => FALSE,
+       'disp-width' => '10',
+     ),
+   ),
+   'primary key' => array('bid'),
+   'indexes' => array(
+      'balance' => array('balance'),
+      'timestamp' => array('timestamp'),
+      'type' => array('type'),
+      'uid' => array('uid'),
+    ),
+  );
+  return $schema;
+}
+
+function balance_tracker_install() {
+  // Create my tables.
+  drupal_install_schema('balance_tracker');
+}
+
+function balance_tracker_uninstall() {
+  // Drop my tables.
+  drupal_uninstall_schema('balance_tracker');
+}
+
+/**
+ * The balance_tracker_custom_format variable was renamed to balance_tracker_custom_date_format.
+ */
+function admin_menu_update_6101() {
+  $format = variable_get('balance_tracker_custom_format', '$');
+  variable_set('balance_tracker_custom_date_format', $format);
+}

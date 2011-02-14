@@ -1,0 +1,18 @@
+; $Id$
+name = "Rubik"
+description = "Clean admin theme."
+base theme = "tao"
+core = "6.x"
+engine = "phptemplate"
+
+scripts[] = "js/rubik.js"
+stylesheets[screen][] = "core.css"
+stylesheets[screen][] = "icons.css"
+stylesheets[screen][] = "style.css"
+
+; Information added by fserver
+core = "7.x"
+datestamp = "1285618073"
+project = "rubik"
+project status url = "http://code.developmentseed.org/fserver"
+version = "7.x-4.0-beta1"

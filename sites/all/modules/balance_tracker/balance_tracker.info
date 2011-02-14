@@ -1,0 +1,17 @@
+; $Id $
+name = Balance Tracker API
+description = "API and UI tools to create and manage financial account balances for your users."
+package = Balance Tracker
+core = 7.x
+//dependencies[] = date_popup
+
+files[] = balance_tracker.install
+files[] = balance_tracker.module
+files[] = includes/balance_tracker.views.inc
+files[] = includes/balance_tracker_handler_filter_balance_items_type.inc
+; Information added by drupal.org packaging script on 2010-07-11
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "balance_tracker"
+datestamp = "1278833501"
+

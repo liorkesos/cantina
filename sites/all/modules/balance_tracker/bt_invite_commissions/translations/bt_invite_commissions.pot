@@ -1,0 +1,84 @@
+# $Id: bt_invite_commissions.pot,v 1.1 2009/07/15 14:45:01 brianV Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  bt_invite_commissions.module: n/a
+#  bt_invite_commissions.info: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-07-15 09:39-0500\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: bt_invite_commissions.module:38
+msgid "Commission Percentage"
+msgstr ""
+
+#: bt_invite_commissions.module:42
+msgid "Please enter a percentage of the subtotal to pay a user if a user they have invited has made a purchase."
+msgstr ""
+
+#: bt_invite_commissions.module:47
+msgid "Save"
+msgstr ""
+
+#: bt_invite_commissions.module:61;64
+msgid "Commission percentages must be numberical values between 0 and 100."
+msgstr ""
+
+#: bt_invite_commissions.module:74
+msgid "Invite Commissions settings saved."
+msgstr ""
+
+#: bt_invite_commissions.module:84
+msgid "Pay Commissions to inviting user."
+msgstr ""
+
+#: bt_invite_commissions.module:85
+msgid "Commission"
+msgstr ""
+
+#: bt_invite_commissions.module:88
+msgid "Order"
+msgstr ""
+
+#: bt_invite_commissions.module:128
+msgid "Commission paid: @percentage% of @subtotal."
+msgstr ""
+
+#: bt_invite_commissions.module:13
+msgid "administer commission amounts"
+msgstr ""
+
+#: bt_invite_commissions.module:13
+msgid "receive commission payments"
+msgstr ""
+
+#: bt_invite_commissions.module:21 bt_invite_commissions.info:0
+msgid "Invite Commissions"
+msgstr ""
+
+#: bt_invite_commissions.module:25
+msgid "Configure the commission amounts"
+msgstr ""
+
+#: bt_invite_commissions.module:0
+msgid "bt_invite_commissions"
+msgstr ""
+
+#: bt_invite_commissions.info:0
+msgid "Credit a commission for any purchases made by invited users to their inviter."
+msgstr ""
+
+#: bt_invite_commissions.info:0
+msgid "Balance Tracker"
+msgstr ""

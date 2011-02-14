@@ -1,0 +1,777 @@
+<?php
+// $Id: balance_tracker.module,v 1.19 2010/01/04 14:38:47 brianV Exp $
+
+/**
+ * @file
+ * The .module file for the Balance Tracker module.
+ */
+
+/**
+ * Implementation of hook_views_api().
+ */
+function balance_tracker_views_api() {
+  return array(
+    'api' => 2.0,
+    'path' => drupal_get_path('module', 'balance_tracker') . '/includes',
+  );
+}
+
+
+/**
+ * Implementation of hook_permission().
+ */
+function balance_tracker_permission() {
+  return array(
+    'administer balance tracker' => array(
+      'title' => 'Adminster Balance Tracker',
+      'description' => 'User may adminster the balance tracker module settings',
+    ),
+    'view own balance' => array(
+      'title' => 'View own balance',
+      'description' => 'User may view their own balance',
+    ),
+    'view all balances' => array(
+      'title' => 'View all balances',
+      'description' => 'User may view all users\' balances',
+     ),
+    'adjust user balances' => array(
+      'title' => 'Adjust user balances',
+      'description' => 'User may manually adjust user balances',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function balance_tracker_menu() {
+  $items['balance'] = array(
+    'title' => 'Your Balance',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('balance_tracker_date_form'),
+    'access arguments' => array('view own balance'),
+  );
+  $items['user/%/balance'] = array(
+    'title' => 'User\'s Balance',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('balance_tracker_date_form'),
+    'access arguments' => array('view all balances'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/reports/balances'] = array(
+    'title' => 'User Balances',
+    'page callback' => 'balance_tracker_all_balances_page',
+    'access arguments' => array('view all balances'),
+    'description' => 'View the balances of all site users.',
+  );
+  $items['admin/settings/balance'] = array(
+    'title' => 'Balance Tracker Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('balance_tracker_admin_form'),
+    'access arguments' => array('administer balance tracker'),
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_block_info().
+ */
+function balance_tracker_block_info() {
+  $blocks['bt_adjustment'] = array(
+    'info' => t('User Balance Adjustment block'),
+    'weight' => 0,
+    'status' => 0,
+    'region' => 'left',
+  );
+  $blocks['bt_selection'] = array(
+    'info' => t('User Balance Sheet selection block'),
+    'weight' => 0,
+    'status' => 0,
+    'region' => 'left',
+  );
+  return $blocks;
+}
+
+/**
+* Implementation of hook_block_view().
+*/
+function balance_tracker_block_view($delta = '') {
+  switch ($delta) {
+    case 'bt_adjustment':
+      if (user_access('adjust user balances') && (arg(0) == 'balance' || (arg(0) == 'user' && arg(2) == 'balance'))) {
+        $block = array(
+          'subject' => t('User Balance Adjustments'),
+          'content' => drupal_get_form('balance_tracker_adjustment_form'),
+        );
+        return $block;
+      }
+      break;
+    case 'bt_selection':
+      if (user_access('view all balances')) {
+        $block = array(
+          'subject' => t('Select balance sheet'),
+          'content' => drupal_get_form('balance_tracker_get_user_sheet_form'),
+        );
+        return $block;
+      }
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_user_view().
+ */
+function balance_tracker_user_view($account, $build_mode) {
+  global $user;
+  if (variable_get('balance_tracker_show_in_profile', 'noshow') == 'show') {
+    if (($account->uid == $user->uid && user_access('view_own_balance')) || user_access('view all balances')) {
+      $balance = balance_tracker_format_currency(balance_tracker_get_balance($account->uid));
+      $value = $balance . '<p>' . l(t('View full balance sheet'), 'user/' . $account->uid . '/balance') . '</p>';
+      $account->content['user_balance'] = array(
+        '#type' => 'user_profile_category',
+        '#title' => t('Balance'),
+        '#weight' => 4,
+      );
+      $account->content['user_balance']['balance'] = array(
+        '#type' => 'user_profile_item',
+        '#title' => t('Current Balance'),
+        '#value' => $value,
+      );
+    }
+  }
+}
+
+/**
+ * Builds the date selection form at the top of the balance page.
+ */
+function balance_tracker_date_form($form_state) {
+  global $user;
+  $output = '';
+
+  // Preset $to and $from based on form variables if available, or on sensible
+  // defaults if not. 86400 added to $to since to set the time to the end of the
+  // selected day.
+  if (isset($form_state['date_to'])) {
+    $to = strtotime($form_state['date_to']) + 86400;
+  }
+  else {
+    $to = $_SERVER['REQUEST_TIME'];
+  }
+
+  // Use value from form.
+  if (isset($form_state['date_from'])) {
+    $from = strtotime($form_state['date_from']);
+  }
+  // Use viewed user (looking at someone else's account).
+  elseif (arg(0) == 'user' && arg(2) == 'balance' && is_numeric(arg(1)) && arg(1) != $user->uid) {
+    $uid = arg(1);
+    $viewed_user = user_load($uid);
+    $from = $viewed_user->created;
+    $output .= '<p>' . t("This is !user's balance sheet.", array('!user' => $viewed_user->name)) . '</p>';
+  }
+  // Looking at own account.
+  else {
+    $from = $user->created;
+    $output .= '<p>' . t('This is your balance sheet.') . '</p>';
+  }
+
+  $output .= '<p>' . t('This shows recent credits and debits to your account. Entries from a specific date period may be viewed by selecting a date range using the boxes below labelled \'From\' and \'To\'') . '</p>';
+
+  $form['helptext'] = array(
+    '#markup' => $output,
+  );
+
+  $form_state['redirect'] = NULL;
+
+  $format = 'm/d/Y';
+
+  /*$form['date_from'] = array(
+    '#type' => 'date_popup',
+    '#title' => t('From'),
+    '#default_value' => date($format, $user->created),
+    '#date_format' => $format,
+    '#date_label_position' => 'within',
+    '#date_timezone' => 'America/Chicago',
+    '#date_increment' => 15,
+    '#date_year_range' => '-3:+3',
+  );
+  $form['date_to'] = array(
+    '#type' => 'date_popup',
+    '#title' => t('To'),
+    '#default_value' => date($format, $_SERVER['REQUEST_TIME']),
+    '#date_format' => $format,
+    '#date_label_position' => 'within',
+    '#date_timezone' => 'America/Chicago',
+    '#date_increment' => 15,
+    '#date_year_range' => '-3:+3',
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Display'),
+  );*/
+  
+  $table = balance_tracker_balance_table(0, REQUEST_TIME);
+  $form['accounts'] = array(
+    '#markup' => $table,
+  );
+  $form['pager'] = array('#markup' => theme('pager', array('tags' => NULL)));
+  
+  return $form;
+}
+
+/**
+ * Validation for the date range form at the top of balance pages.
+ */
+function balance_tracker_date_form_validate($form, &$form_state) {
+  if (strtotime($form_state['values']['date_from']) === FALSE) {
+    form_set_error('date_from', t('From date was not in a recognizable date format. <em>mm/dd/YYYY</em> should be recognized.'));
+  }
+  else {
+    $form_state['date_from'] = $form_state['values']['date_from'];
+  }
+
+  if (strtotime($form_state['values']['date_to']) === FALSE) {
+    form_set_error('date_to', t('To date was not in a recognizable date format. <em>mm/dd/YYYY</em> should be recognized.'));
+  }
+  else {
+    $form_state['date_to'] = $form_state['values']['date_to'];
+  }
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Builds the form to adjust the balance of a specific user.
+ */
+function balance_tracker_adjustment_form($form_state) {
+  global $user;
+
+  $default_name = '';
+  if (arg(0) == 'user' && arg(2) == 'balance' && is_numeric(arg(1))) {
+    $viewed_user = user_load(arg(1));
+    $default_name = $viewed_user->name;
+  }
+  elseif (arg(0) == 'balance') {
+    $default_name = $user->name;
+  }
+
+
+  $form['username'] = array(
+    '#type' => 'textfield',
+    '#title' => t('User'),
+    '#size' => 20,
+    '#default_value' => $default_name,
+    '#maxlength' => 128,
+    '#autocomplete_path' => 'user/autocomplete',
+  );
+  $form['amount'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Amount'),
+    '#default_value' => '2.00',
+    '#size' => 20,
+    '#maxlength' => 64,
+    '#description' => t('Enter the amount you wish to credit the user here.'),
+  );
+  $form['message'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Message'),
+    '#default_value' => 'Admin Adjustment',
+    '#size' => 20,
+    '#maxlength' => 64,
+    '#description' => t('Please enter a log message here.'),
+  );
+  $form['type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Type'),
+    '#default_value' =>  'credit',
+    '#options' => array(
+      'credit' => t('Credit'),
+      'debit' => t('Debit'),
+    ),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Adjust'),
+  );
+  return $form;
+}
+
+/**
+ * Validation for the balance adjustment form.
+ */
+function balance_tracker_adjustment_form_validate($form, &$form_state) {
+  $name = $form_state['values']['username'];
+  $uid = db_query('SELECT uid FROM {users} WHERE name = :name', array(':name' => $name))->fetchField();
+  $account = user_load($uid);
+
+  // Check if form is blank.
+  if ($form_state['values']['username'] == '') {
+    form_set_error('username', t('You must enter a user name.'));
+  }
+  // Make sure a valid user account is selected.
+  elseif (!$account) {
+    form_set_error('username', t('The user account could not be loaded.'));
+  }
+  // Make sure user has proper permissions.
+  elseif (user_access('adjust user balances') !== TRUE) {
+    form_set_error('', t('You do not have permission to make user balance adjustments.'));
+  }
+  elseif (!is_numeric($form_state['values']['amount']) || $form_state['values']['amount'] < 0) {
+    form_set_error('amount', t('Amount must be a non-negative number.'));
+  }
+}
+
+
+/**
+ * Submission hook for the balance_tracker_adjustment_form.
+ */
+function balance_tracker_adjustment_form_submit($form, &$form_state) {
+  $name = $form_state['values']['username'];
+  $uid = db_query('SELECT uid FROM {users} WHERE name = :name', array(':name' => $name))->fetchField();
+  _balance_tracker_create_entry($uid, $form_state['values']['type'], $form_state['values']['amount'], check_plain($form_state['values']['message']));
+  drupal_set_message(t('Transaction Success: Account balance adjusted successfully.'));
+  drupal_goto('user/' . $uid . '/balance');
+}
+
+/**
+ * Builds the form to retrieve the balance sheet of a specific user.
+ */
+function balance_tracker_get_user_sheet_form($form_state) {
+  $form['username'] = array(
+    '#type' => 'textfield',
+    '#title' => 'User',
+    '#size' => 20,
+    '#maxlength' => 128,
+    '#autocomplete_path' => 'user/autocomplete',
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  return $form;
+}
+
+/**
+ * Validation for the balance sheet retrieval form.
+ */
+function balance_tracker_get_user_sheet_form_validate($form, &$form_state) {
+  global $user;
+  $name = $form_state['values']['username'];
+  $uid = db_query('SELECT uid FROM {users} WHERE name = :name', array(':name' => $name))->fetchField();
+  $account = user_load($uid);
+  // Check if form is blank.
+  if ($form_state['values']['username'] == '') {
+    form_set_error('username', t('You must enter a user name.'));
+  }
+  // Make sure a valid user account is selected.
+  elseif (!$account) {
+    form_set_error('username', t('The user account could not be loaded.'));
+  }
+  // Make sure user has proper permissions.
+  elseif (user_access('adjust user balances') !== TRUE) {
+    form_set_error('', t('You do not have permission to make user balance adjustments.'));
+  }
+  elseif ($form_state['values']['username'] != $user->name && user_access('view all balances') !== TRUE) {
+    form_set_error('', t('You do not have permission to view other users balance sheets.'));
+  }
+}
+
+/**
+ * Submission hook for the balance_tracker_adjustment_form.
+ */
+function balance_tracker_get_user_sheet_form_submit($form, &$form_state) {
+  $name = $form_state['values']['username'];
+  $uid = db_query('SELECT uid FROM {users} WHERE name = :name', array(':name' => $name))->fetchField();
+  drupal_goto('user/' . $uid . '/balance');
+}
+
+/**
+ * Function to build the admin form.
+ */
+function balance_tracker_admin_form($form_state) {
+  $form['currency'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Currency Settings'),
+    '#tree' => TRUE,
+  );
+  $form['currency']['symbol'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Currency Symbol',
+    '#size' => 5,
+    '#default_value' => variable_get('balance_tracker_currency_symbol', '$'),
+    '#maxlength' => 5,
+    '#description' => t('Please enter the currency symbol you would like to use here. You may also look at <a href="http://www.xe.com/symbols.php">a list of currency symbols</a>.'),
+  );
+  $form['currency']['symbol_position'] = array(
+    '#type' => 'radios',
+    '#title' => t('Symbol Position'),
+    '#default_value' =>  variable_get('balance_tracker_currency_symbol_position', 'before'),
+    '#options' => array(
+      'before' => t('Before'),
+      'after' => t('After'),
+    ),
+    '#description' => t('This controls whether the currency symbol appears before or after the currency value.'),
+  );
+  $form['currency']['thousands_separator'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Thousands Separator'),
+    '#default_value' => variable_get('balance_tracker_thousands_separator', ','),
+    '#size' => 3,
+    '#maxlength' => 1,
+    '#description' => t('Please set a thousands separator.'),
+  );
+  $form['currency']['decimal_separator'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Decimal Separator'),
+    '#default_value' => variable_get('balance_tracker_decimal_separator', '.'),
+    '#size' => 3,
+    '#maxlength' => 1,
+    '#description' => t('Please set a decimal separator.'),
+  );
+  $form['date'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Date Settings'),
+    '#tree' => TRUE,
+  );
+  $form['date']['format'] = array(
+    '#type' => 'radios',
+    '#title' => t('Date Format'),
+    '#default_value' =>  variable_get('balance_tracker_date_format', 'small'),
+    '#options' => array(
+      'small' => t('Short: @time', array('@time' => format_date(REQUEST_TIME, 'small'))),
+      'medium' => t('Medium: @time', array('@time' => format_date(REQUEST_TIME, 'medium'))),
+      'large' => t('Long: @time', array('@time' => format_date(REQUEST_TIME, 'large'))),
+      'custom' => t('Custom'),
+    ),
+    '#description' => t('Please select a date format above. Short, Medium, and Long formats can be configured in the !link.', array('!link' => l('Date and Time settings', 'admin/settings/date-time/formats'))),
+  );
+  $form['date']['custom_format'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Custom Date Format'),
+    '#default_value' => variable_get('balance_tracker_custom_date_format', ''),
+    '#size' => 20,
+    '#maxlength' => 20,
+    '#description' => t('If you have chosen a Custom format above, please enter it here. See the !link for available format options.', array('!link' => '<a href="http://php.net/manual/function.date.php">PHP Manual</a>')),
+  );
+  $form['show_balance_profile'] = array(
+    '#type' => 'radios',
+    '#title' => t('User profile'),
+    '#default_value' =>  variable_get('balance_tracker_show_in_profile', 'noshow'),
+    '#options' => array(
+      'show' => t('Show balance in user profile.'),
+      'noshow' => t('Do not show balance in user profile.'),
+    ),
+    '#description' => t('Please select whether the user\'s balance should be shown in the user profile. Visibility is restricted via the \'view own balance\' and \'view all balances\' permissions.'),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  return $form;
+}
+
+/**
+ * Validation hook for the balance_tracker_admin_form.
+ */
+function balance_tracker_admin_form_validate($form, &$form_state) {
+  if ($form_state['values']['date']['format'] == 'custom' && $form_state['values']['date']['custom_format'] == NULL) {
+    form_set_error('date', t('You must specify a format string if you have chosen to use a custom date format.'));
+  }
+}
+
+/**
+ * Submission hook for the balance_tracker_admin_form.
+ */
+function balance_tracker_admin_form_submit($form, &$form_state) {
+  // Save currency settings
+  variable_set('balance_tracker_currency_symbol', check_plain($form_state['values']['currency']['symbol']));
+  variable_set('balance_tracker_currency_symbol_position', check_plain($form_state['values']['currency']['symbol_position']));
+  variable_set('balance_tracker_thousands_separator', check_plain($form_state['values']['currency']['thousands_separator']));
+  variable_set('balance_tracker_decimal_separator', check_plain($form_state['values']['currency']['decimal_separator']));
+
+  // Save timestamp format settings.
+  variable_set('balance_tracker_date_format', $form_state['values']['date']['format']);
+  if ($form_state['values']['date']['format'] != 'custom') {
+    variable_del('balance_tracker_custom_date_format');
+  }
+  else {
+    variable_set('balance_tracker_custom_date_format', check_plain($form_state['values']['date']['custom_format']));
+  }
+
+  // Save user profile settings.
+  variable_set('balance_tracker_show_in_profile', $form_state['values']['show_balance_profile']);
+
+  drupal_set_message(t('Configuration settings saved.'));
+}
+
+/**
+ * Show a page with a user's balance sheet items.
+ *
+ * @param $uid
+ *  The uid of the user to display the balance sheet for. If $uid is not provided,
+ *  the user making the request is assumed.
+ */
+function balance_tracker_balance_table($from, $to, $uid = NULL) {
+  global $user;
+  $output = '';
+
+  // Determine the UID to use
+  if (arg(0) == 'balance') {
+    $uid = $user->uid;
+    drupal_set_title($user->name . '\'s Balance');
+  }
+  elseif (arg(0) == 'user' && arg(2) == 'balance' && is_numeric(arg(1))) {
+    $uid = arg(1);
+    $viewed_user = user_load($uid);
+    drupal_set_title($viewed_user->name . '\'s Balance');
+  }
+
+  // Add the CSS to theme the table.
+  drupal_add_css(drupal_get_path('module', 'balance_tracker') . '/balance_tracker.css');
+
+  $records = balance_tracker_get_items_range($uid, 25, $from, $to);
+  // Format the records from the DB before we display them.
+  $rows = array();
+  foreach ($records as $record) {
+    $record = (array) $record;
+    // Get our date and time settings
+    $date_type = variable_get('balance_tracker_date_format', 'small');
+    $custom_format = variable_get('balance_tracker_custom_date_format', '');
+    $record['timestamp'] = format_date($record['timestamp'], $date_type, $custom_format);
+
+    // Format the currency as needed.
+    $record['balance'] = balance_tracker_format_currency($record['balance']);
+
+    // Add class names to credits and debits so we can color them
+    if ($record['type'] == 'debit') {
+      $record['amount'] = '<span class="debit">-' . balance_tracker_format_currency($record['amount']) . '</span>';
+    }
+    elseif ($record['type'] == 'credit') {
+      $record['amount'] = '<span class="credit">' . balance_tracker_format_currency($record['amount']) . '</span>';
+    }
+
+    unset($record['type']);
+    $rows[] = $record;
+  }
+
+  $header = array(
+    'timestamp' => array('data' => t('Time')),
+    'message' => array('data' => t('Message')),
+    'amount' => array('data' => t('Amount')),
+    'balance' => array('data' => t('Balance')),
+  );
+
+  return theme_table(array('header' => $header,
+                           'rows' => $rows,
+                           'attributes' => NULL,
+                           'caption' => NULL,
+                           'colgroups' => NULL,
+                           'sticky' => TRUE,
+                           'empty' => 'There are no balance items for this user.'));
+}
+
+/**
+ * Adds a credit to a user's account.
+ *
+ * @param $uid
+ *   The UID of the user the credit should be applied to.
+ * @param $amount
+ *   The amount to credit the account with.
+ * @param $message
+ *   A string explaining the nature of the credit. (ie, 'Commission for $27
+ *   purchase')
+ *
+ * @return
+ *   A boolean reflecting whether the transaction was successful.
+ */
+function balance_tracker_credit_account($uid, $amount, $message) {
+  return _balance_tracker_create_entry($uid, 'credit', $amount, $message);
+}
+
+/**
+ * Debit a user's account.
+ *
+ * @param $uid
+ *   The UID of the user the debit should be applied to.
+ * @param $amount
+ *   The amount to debit the account.
+ * @param $message
+ *   A string explaining the nature of the debit. (ie, 'Monthly account fees')
+ *
+ * @return
+ *   A boolean reflecting whether the transaction was successful.
+ */
+function balance_tracker_debit_account($uid, $amount, $message) {
+  return _balance_tracker_create_entry($uid, 'debit', $amount, $message);
+}
+
+/**
+ * Helper function to handle the actual account transactions.
+ */
+function _balance_tracker_create_entry($uid, $type, $amount, $message) {
+  $balance = balance_tracker_get_balance($uid);
+
+  // Invoke any hook_balance_prewrite() implementations.
+  module_invoke_all('balance_prewrite', $uid, $type, $amount, $message);
+
+  if ($type == 'credit') {
+    $balance += (float) $amount;
+  }
+  else {
+    $balance -= (float) $amount;
+  }
+  $fields = array('uid' => $uid,
+                  'timestamp' => $_SERVER['REQUEST_TIME'], 
+                  'type' => $type, 
+                  'message' => $message,
+                  'amount' => $amount,
+                  'balance' => $balance);
+
+  db_insert('balance_items')->fields($fields)->execute();
+
+  module_invoke_all('balance_write', $uid, $type, $amount, $message);
+  return TRUE;
+  
+}
+
+/**
+ * Gets a user's current balance.
+ *
+ * @param $uid
+ *  The UID of the user for whom the balance should be retrieved.
+ *
+ * @return
+ *   A float containing the balance of the user. If the user has no entries
+ *   in the balance items table, the balance is assumed to be 0.00.
+ */
+function balance_tracker_get_balance($uid) {
+  $result = db_query("SELECT * FROM {balance_items} WHERE uid = :uid ORDER BY bid DESC LIMIT 1", array(':uid' => $uid))->fetchObject();
+  
+  if ($result !== FALSE) {
+    return (float) $result->balance;
+  }
+  else {
+    return 0.00;
+  }
+}
+
+/**
+ * Gets all items on the user's balance sheet.
+ *
+ * @param $uid
+ *  The UID of the user for whom the balance sheet should be retrieved.
+ * @param $per_page
+ *  The number of entries that should be displayed on a page. Defaults
+ *  to 25.
+ *
+ * @return
+ *   An array of balance sheet entries.
+ */
+function balance_tracker_get_items($uid, $per_page = 25) {
+  
+  return balance_tracker_get_items_range($uid, $per_page, 0, REQUEST_TIME);
+}
+
+/**
+ * Gets all items on the user's balance sheet for a period between two timestamps.
+ *
+ * @param $uid
+ *  The UID of the user for whom the balance sheet should be retrieved.
+ * @param $per_page
+ *  The number of entries that should be displayed on a page. Defaults
+ *  to 25.
+ * @param $from
+ *  The timestamp marking the beginning of the period for which we are retrieving balance items.
+ * @param $to
+ *  The timestamp marking the end of the period for which we are retrieving balance items.
+ *
+ * @return
+ *   An array of balance sheet entries in chronological order.
+ */
+function balance_tracker_get_items_range($uid, $per_page = 25, $from, $to) {
+  $rows = array();
+  $query = db_select('balance_items', 'b')->extend('PagerDefault');
+  $query
+    ->fields('b', array('timestamp', 'message', 'type', 'amount', 'balance'))
+    ->condition('uid', $uid)
+    ->condition('timestamp', $from, '>')
+    ->condition('timestamp', $to, '<')
+    ->limit($per_page);
+  $query->orderBy('bid', 'DESC');
+  $results = $query->execute();
+
+  foreach ($results as $row) {
+    $rows[] = $row;
+  }
+
+  return $rows;
+}
+
+/**
+ * Generate the page showing all user balances.
+ */
+function balance_tracker_all_balances_page() {
+  $output = '';
+
+  $output .= '<p>' . t('Here you can view the balances for all users.') . '</p>';
+  $output .= '<p>' . t('The balance column is sortable. Click on a user\'s name to get their balance sheet.') . '</p>';
+
+  $header = array(
+    'uid' => array('data' => t('User'), 'sort' => 'uid'),
+    'balance' => array('data' => t('Balance'), 'sort' => 'balance', 'sort' => 'desc'),
+  );
+
+  $query = db_select('balance_items', 'b1')->extend('PagerDefault')->extend('TableSort');
+  $query->addField('b1', 'uid', 'uid');
+  $query->addExpression('(SELECT b.balance FROM {balance_items} b 
+                            WHERE b.uid = b1.uid 
+                            ORDER BY b.bid DESC LIMIT 0,1)', 'balance');
+  $query->groupBy('b1.uid');
+  $query->limit(25);
+  $results = $query->execute();
+
+  $rows = array();
+  foreach ($results as $result) {
+    // Swap the UID result for a fully formatted link to the user's balance.
+    $user = user_load($result->uid);
+    $row['user'] = l($user->name, 'user/' . $user->uid . '/balance');
+
+    $row['balance'] = balance_tracker_format_currency($result->balance);
+    $rows[] = $row;
+  }
+
+  $output .= theme_table(array('header' => $header,
+                           'rows' => $rows,
+                           'attributes' => NULL,
+                           'caption' => NULL,
+                           'colgroups' => NULL,
+                           'sticky' => TRUE,
+                           'empty' => 'You don\'t appear to have any users with balances.'));
+  
+  $output .= theme('pager', array('tags' => NULL));
+
+  return $output;
+}
+
+/**
+ * Function to format a currency according to the admin settings.
+ *
+ * @param $value
+ *  A float containing the currency value to be displayed.
+ * @return
+ *  A string with the formatted currency.
+ */
+function balance_tracker_format_currency($value) {
+  $symbol = variable_get('balance_tracker_currency_symbol', '$');
+  $position = variable_get('balance_tracker_currency_symbol_position', 'before');
+  $thousands_separator = variable_get('balance_tracker_thousands_separator', ',');
+  $decimal_separator = variable_get('balance_tracker_decimal_separator', '.');
+
+  $number = number_format($value, 2, $decimal_separator, $thousands_separator);
+
+  if ($position == 'before') {
+    return $symbol . $number;
+  }
+  else {
+    return $number . $symbol;
+  }
+}

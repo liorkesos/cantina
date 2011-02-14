@@ -1,0 +1,14 @@
+; $Id: l10n_client.info,v 1.5.4.1 2009/07/14 17:51:32 goba Exp $
+name = Localization client
+description = Provides on-page localization
+dependencies[] = locale
+core = 7.x
+package = Multilanguage
+files[] = l10n_client.module
+
+; Information added by drupal.org packaging script on 2010-12-17
+version = "7.x-1.0-beta2"
+core = "7.x"
+project = "l10n_client"
+datestamp = "1292589168"
+

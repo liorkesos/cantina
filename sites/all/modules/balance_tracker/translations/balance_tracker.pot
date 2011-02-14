@@ -1,0 +1,317 @@
+# $Id: balance_tracker.pot,v 1.2 2009/07/02 19:32:30 brianV Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  balance_tracker.module,v 1.11 2009/06/29 17:23:08 brianV
+#  balance_tracker.install,v 1.1 2009/06/25 19:58:08 brianV
+#  balance_tracker.info,v 1.2 2009/06/25 21:28:11 brianV
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-07-02 14:30-0500\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: balance_tracker.module:58
+msgid "User Balance Adjustment block"
+msgstr ""
+
+#: balance_tracker.module:60
+msgid "User Balance Sheet selection block"
+msgstr ""
+
+#: balance_tracker.module:69
+msgid "User Balance Adjustments"
+msgstr ""
+
+#: balance_tracker.module:75
+msgid "Select balance sheet"
+msgstr ""
+
+#: balance_tracker.module:110
+msgid "This is !user's balance sheet."
+msgstr ""
+
+#: balance_tracker.module:115
+msgid "This is your balance sheet."
+msgstr ""
+
+#: balance_tracker.module:118
+msgid "This shows recent credits and debits to your account. Entries from a specific date period may be viewed by selecting a date range using the boxes below labelled 'From' and 'To'"
+msgstr ""
+
+#: balance_tracker.module:131
+msgid "From"
+msgstr ""
+
+#: balance_tracker.module:141
+msgid "To"
+msgstr ""
+
+#: balance_tracker.module:151
+msgid "Display"
+msgstr ""
+
+#: balance_tracker.module:165
+msgid "From date was not in a recognizable date format. <em>mm/dd/YYYY</em> should be recognized."
+msgstr ""
+
+#: balance_tracker.module:172
+msgid "To date was not in a recognizable date format. <em>mm/dd/YYYY</em> should be recognized."
+msgstr ""
+
+#: balance_tracker.module:198;620
+msgid "User"
+msgstr ""
+
+#: balance_tracker.module:206;466
+msgid "Amount"
+msgstr ""
+
+#: balance_tracker.module:210
+msgid "Enter the amount you wish to credit the user here."
+msgstr ""
+
+#: balance_tracker.module:214;466
+msgid "Message"
+msgstr ""
+
+#: balance_tracker.module:218
+msgid "Please enter a log message here."
+msgstr ""
+
+#: balance_tracker.module:222
+msgid "Type"
+msgstr ""
+
+#: balance_tracker.module:224
+msgid "Credit"
+msgstr ""
+
+#: balance_tracker.module:224
+msgid "Debit"
+msgstr ""
+
+#: balance_tracker.module:228
+msgid "Adjust"
+msgstr ""
+
+#: balance_tracker.module:241;293
+msgid "You must enter a user name."
+msgstr ""
+
+#: balance_tracker.module:245;297
+msgid "The user account could not be loaded."
+msgstr ""
+
+#: balance_tracker.module:249;301
+msgid "You do not have permission to make user balance adjustments."
+msgstr ""
+
+#: balance_tracker.module:252
+msgid "Amount must be a non-negative number."
+msgstr ""
+
+#: balance_tracker.module:263
+msgid "Transaction Success: Account balance adjusted successfully."
+msgstr ""
+
+#: balance_tracker.module:280
+msgid "Submit"
+msgstr ""
+
+#: balance_tracker.module:304
+msgid "You do not have permission to view other users balance sheets."
+msgstr ""
+
+#: balance_tracker.module:322
+msgid "Currency Settings"
+msgstr ""
+
+#: balance_tracker.module:331
+msgid "Please enter the currency symbol you would like to use here. You may also look at <a href=\"http://www.xe.com/symbols.php\">a list of currency symbols</a>."
+msgstr ""
+
+#: balance_tracker.module:335
+msgid "Symbol Position"
+msgstr ""
+
+#: balance_tracker.module:337
+msgid "Before"
+msgstr ""
+
+#: balance_tracker.module:337
+msgid "After"
+msgstr ""
+
+#: balance_tracker.module:338
+msgid "This controls whether the currency symbol appears before or after the currency value."
+msgstr ""
+
+#: balance_tracker.module:342
+msgid "Thousands Separator"
+msgstr ""
+
+#: balance_tracker.module:346
+msgid "Please set a thousands separator."
+msgstr ""
+
+#: balance_tracker.module:350
+msgid "Decimal Separator"
+msgstr ""
+
+#: balance_tracker.module:354
+msgid "Please set a decimal separator."
+msgstr ""
+
+#: balance_tracker.module:358
+msgid "Date Settings"
+msgstr ""
+
+#: balance_tracker.module:363
+msgid "Date Format"
+msgstr ""
+
+#: balance_tracker.module:365
+msgid "Short: @time"
+msgstr ""
+
+#: balance_tracker.module:366
+msgid "Medium: @time"
+msgstr ""
+
+#: balance_tracker.module:367
+msgid "Long: @time"
+msgstr ""
+
+#: balance_tracker.module:368
+msgid "Custom"
+msgstr ""
+
+#: balance_tracker.module:369
+msgid "Please select a date format above. Short, Medium, and Long formats can be configured in the !link."
+msgstr ""
+
+#: balance_tracker.module:373
+msgid "Custom Date Format"
+msgstr ""
+
+#: balance_tracker.module:377
+msgid "If you have chosen a Custom format above, please enter it here. See the !link for available format options."
+msgstr ""
+
+#: balance_tracker.module:381
+msgid "Save"
+msgstr ""
+
+#: balance_tracker.module:391
+msgid "You must specify a format string if you have chosen to use a custom date format."
+msgstr ""
+
+#: balance_tracker.module:466
+msgid "Time"
+msgstr ""
+
+#: balance_tracker.module:466;621
+msgid "Balance"
+msgstr ""
+
+#: balance_tracker.module:616
+msgid "Here you can view the balances for all users."
+msgstr ""
+
+#: balance_tracker.module:617
+msgid "The balance column is sortable. Click on a user's name to get their balance sheet."
+msgstr ""
+
+#: balance_tracker.module:14
+msgid "view own balance"
+msgstr ""
+
+#: balance_tracker.module:15
+msgid "view all balances"
+msgstr ""
+
+#: balance_tracker.module:16
+msgid "adjust user balances"
+msgstr ""
+
+#: balance_tracker.module:17
+msgid "administer balance tracker"
+msgstr ""
+
+#: balance_tracker.module:26
+msgid "Your Balance"
+msgstr ""
+
+#: balance_tracker.module:32
+msgid "User's Balance"
+msgstr ""
+
+#: balance_tracker.module:39
+msgid "User Balances"
+msgstr ""
+
+#: balance_tracker.module:42
+msgid "View the balances of all site users."
+msgstr ""
+
+#: balance_tracker.module:45
+msgid "Balance Tracker Settings"
+msgstr ""
+
+#: balance_tracker.module:0
+msgid "balance_tracker"
+msgstr ""
+
+#: balance_tracker.install:14
+msgid "Stores user balance items"
+msgstr ""
+
+#: balance_tracker.install:17
+msgid "The unique identifier for this balance item."
+msgstr ""
+
+#: balance_tracker.install:23
+msgid "The UID of the user this item belongs to."
+msgstr ""
+
+#: balance_tracker.install:29
+msgid "The timestamp this item was created."
+msgstr ""
+
+#: balance_tracker.install:35
+msgid "Whether this item is a credit or debit."
+msgstr ""
+
+#: balance_tracker.install:41
+msgid "Log message related to this item."
+msgstr ""
+
+#: balance_tracker.install:47
+msgid "The amount credited or debited with this transaction."
+msgstr ""
+
+#: balance_tracker.install:53
+msgid "The balance once this transaction has taken place."
+msgstr ""
+
+#: balance_tracker.info:0
+msgid "Balance Tracker API"
+msgstr ""
+
+#: balance_tracker.info:0
+msgid "API and UI tools to create and manage financial account balances for your users."
+msgstr ""
+
+#: balance_tracker.info:0
+msgid "Balance Tracker"
+msgstr ""
