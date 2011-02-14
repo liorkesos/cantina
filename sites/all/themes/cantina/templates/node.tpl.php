@@ -91,7 +91,7 @@
     <div class="meta submitted">
       <?php print $user_picture; ?>
       <?php
-        print t('published by !username on !datetime',
+        print t('!username, !datetime',
           array('!username' => $name, '!datetime' => $date));
       ?>
     </div>

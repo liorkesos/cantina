@@ -1,5 +1,5 @@
 <?php
-// $Id: handlers.inc,v 1.119.4.15 2010/10/28 20:04:58 dereine Exp $
+// $Id: handlers.inc,v 1.119.4.25 2011/01/22 23:26:59 dereine Exp $
 /**
  * @file handlers.inc
  * Defines the various handler objects to help build and display views.
@@ -92,7 +92,7 @@ function views_get_table_join($table, $base_table) {
     return $handler;
   }
   // DEBUG -- identify missing handlers
-  debug("Missing join: $table $base_table");
+  vpr("Missing join: $table $base_table");
 }
 
 /**
@@ -165,6 +165,7 @@ class views_handler extends views_object {
     $options['field'] = array('default' => '');
     $options['relationship'] = array('default' => 'none');
     $options['group_type'] = array('default' => 'group');
+    $options['ui_name'] = array('default' => '');
 
     return $options;
   }
@@ -173,6 +174,10 @@ class views_handler extends views_object {
    * Return a string representing this handler's name in the UI.
    */
   function ui_name($short = FALSE) {
+    if (!empty($this->options['ui_name'])) {
+      $title = check_plain($this->options['ui_name']);
+      return $title;
+    }
     $title = ($short && isset($this->definition['title short'])) ? $this->definition['title short'] : $this->definition['title'];
     return t('!group: !title', array('!group' => $this->definition['group'], '!title' => $title));
   }
@@ -210,12 +215,59 @@ class views_handler extends views_object {
    */
   function options_validate(&$form, &$form_state) { }
 
-  function options_form(&$form, &$form_state) { }
+  function options_form(&$form, &$form_state) {
+    $form['ui_name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Administrative Title'),
+      '#description' => t('This title will be displayed on the views edit page instead of the default one. This might be useful if you have the same item twice.'),
+      '#default_value' => $this->options['ui_name'],
+    );
+  }
+
   /**
    * Perform any necessary changes to the form values prior to storage.
    * There is no need for this function to actually store the data.
    */
   function options_submit(&$form, &$form_state) { }
+
+  /**
+   * Provide a form for groupby settings.
+   */
+  function groupby_form(&$form, &$form_state) {
+    $view = &$form_state['view'];
+    $display_id = $form_state['display_id'];
+    $types = views_object_types();
+    $type = $form_state['type'];
+    $id = $form_state['id'];
+
+    $form['#title'] = check_plain($view->display[$display_id]->display_title) . ': ';
+    $form['#title'] .= t('Configure group settings for @type %item', array('@type' => $types[$type]['lstitle'], '%item' => $this->ui_name()));
+
+    $form['#section'] = $display_id . '-' . $type . '-' . $id;
+
+    $info = $view->query->get_aggregation_info();
+    foreach ($info as $id => $aggregate) {
+      $group_types[$id] = $aggregate['title'];
+    }
+
+    $form['group_type'] = array(
+      '#type' => 'select',
+      '#title' => t('Group type'),
+      '#default_value' => $this->options['group_type'],
+      '#description' => t('Select the grouping function to use on this field.'),
+      '#options' => $group_types,
+    );
+  }
+
+  /**
+   * Perform any necessary changes to the form values prior to storage.
+   * There is no need for this function to actually store the data.
+   */
+  function groupby_form_submit(&$form, &$form_state) {
+    $item =& $form_state['handler']->options;
+
+    $item['group_type'] = $form_state['values']['group_type'];
+  }
 
   /**
    * If a handler has 'extra options' it will get a little settings widget and
@@ -402,6 +454,13 @@ class views_handler extends views_object {
   function pre_query() { }
 
   /**
+   * Provides a unique placeholders for handlers.
+   */
+  function placeholder() {
+    return $this->query->placeholder($this->options['table'] . '_' . $this->options['field']);
+  }
+
+  /**
    * Called just prior to query(), this lets a handler set up any relationship
    * it needs.
    */
@@ -537,7 +596,7 @@ class views_many_to_one_helper {
     $this->handler = &$handler;
   }
 
-  static function option_definition(&$options) {
+  function option_definition(&$options) {
     $options['reduce_duplicates'] = array('default' => FALSE);
   }
 
@@ -752,6 +811,13 @@ class views_many_to_one_helper {
     return $this->handler->table_alias;
   }
 
+  /**
+   * Provides a unique placeholders for handlers.
+   */
+  function placeholder() {
+    return $this->handler->query->placeholder($this->handler->options['table'] . '_' . $this->handler->options['field']);
+  }
+
   function add_filter() {
     if (empty($this->handler->value)) {
       return;
@@ -762,22 +828,50 @@ class views_many_to_one_helper {
     $field = $this->get_field();
     $options = $this->handler->options;
     $operator = $this->handler->operator;
+    $formula = !empty($this->formula);
+    $value = $this->handler->value;
     if (empty($options['group'])) {
       $options['group'] = 0;
     }
 
+    $add_condition = TRUE;
     if ($operator == 'not') {
-      $this->handler->query->add_where($options['group'], $field, NULL, 'IS NULL');
+      $value = NULL;
+      $operator = 'IS NULL';
+      $add_condition = FALSE;
     }
     elseif ($operator == 'or' && empty($options['reduce_duplicates'])) {
       if (count($this->handler->value) > 1) {
-        $this->handler->query->add_where($options['group'], $field, $this->handler->value, 'IN');
+        $value = $this->handler->value;
+        $operator = 'IN';
       }
       else {
-        $this->handler->query->add_where($options['group'], $field, $this->handler->value);
+        $value = is_array($this->handler->value) ? array_pop($this->handler->value) : $this->handler->value;
+        $operator = '=';
+      }
+      $add_condition = FALSE;
+    }
+
+    if (!$add_condition) {
+      if ($formula) {
+        $placeholder = $this->placeholder();
+        if ($operator == 'IN') {
+          $operator = "$operator IN($placeholder)";
+        }
+        else {
+          $operator = "$operator $placeholder";
+        }
+        $placeholders = array(
+          $placeholder => $value,
+        ) + $this->placeholders;
+        $this->handler->query->add_where_expression($options['group'], "$field $operator", $placeholders);
+      }
+      else {
+        $this->handler->query->add_where($options['group'], $field, $value, $operator);
       }
     }
-    else {
+
+    if ($add_condition) {
       $field = $this->handler->real_field;
       $clause = $operator == 'or' ? db_or() : db_and();
       foreach ($this->handler->table_aliases as $value => $alias) {
@@ -795,6 +889,58 @@ class views_many_to_one_helper {
  *
  * @param $str
  *   The string to parse.
+ * @param $handler
+ *   The handler object to use as a base.
+ *
+ * @return $handler
+ *   The new handler object.
+ */
+function views_break_phrase_string($str, &$handler) {
+  if (!$handler) {
+    $handler = new stdClass();
+  }
+
+  // Set up defaults:
+  if (!isset($handler->value)) {
+    $handler->value = array();
+  }
+
+  if (!isset($handler->operator)) {
+    $handler->operator = 'or';
+  }
+
+  if ($str == '') {
+    return $handler;
+  }
+
+  if (preg_match('/^(\w+[+ ])+\w+$/', $str)) {
+    // The '+' character in a query string may be parsed as ' '.
+    $handler->operator = 'or';
+    $handler->value = preg_split('/[+ ]/', $str);
+  }
+  else if (preg_match('/^(\w+,)*\w+$/', $str)) {
+    $handler->operator = 'and';
+    $handler->value = explode(',', $str);
+  }
+
+  // Keep an 'error' value if invalid strings were given.
+  if (!empty($str) && (empty($handler->value) || !is_array($handler->value))) {
+    $handler->value = array(-1);
+    return $handler;
+  }
+
+  // Doubly ensure that all values are strings only.
+  foreach ($handler->value as $id => $value) {
+    $handler->value[$id] = (string) $value;
+  }
+
+  return $handler;
+}
+/*
+ * Break x,y,z and x+y+z into an array. Numeric only.
+ *
+ * @param $str
+ *   The string to parse.
  * @param $filter
  *   The filter object to use as a base. If not specified one will
  *   be created.
@@ -802,47 +948,47 @@ class views_many_to_one_helper {
  * @return $filter
  *   The new filter object.
  */
-function views_break_phrase($str, $filter = NULL) {
-  if (!$filter) {
-    $filter = new stdClass();
+function views_break_phrase($str, $handler = NULL) {
+  if (!$handler) {
+    $handler = new stdClass();
   }
 
   // Set up defaults:
 
-  if (!isset($filter->value)) {
-    $filter->value = array();
+  if (!isset($handler->value)) {
+    $handler->value = array();
   }
 
-  if (!isset($filter->operator)) {
-    $filter->operator = 'or';
+  if (!isset($handler->operator)) {
+    $handler->operator = 'or';
   }
 
   if (empty($str)) {
-    return $filter;
+    return $handler;
   }
 
   if (preg_match('/^([0-9]+[+ ])+[0-9]+$/', $str)) {
     // The '+' character in a query string may be parsed as ' '.
-    $filter->operator = 'or';
-    $filter->value = preg_split('/[+ ]/', $str);
+    $handler->operator = 'or';
+    $handler->value = preg_split('/[+ ]/', $str);
   }
   elseif (preg_match('/^([0-9]+,)*[0-9]+$/', $str)) {
-    $filter->operator = 'and';
-    $filter->value = explode(',', $str);
+    $handler->operator = 'and';
+    $handler->value = explode(',', $str);
   }
 
   // Keep an 'error' value if invalid strings were given.
-  if (!empty($str) && (empty($filter->value) || !is_array($filter->value))) {
-    $filter->value = array(-1);
-    return $filter;
+  if (!empty($str) && (empty($handler->value) || !is_array($handler->value))) {
+    $handler->value = array(-1);
+    return $handler;
   }
 
   // Doubly ensure that all values are numeric only.
-  foreach ($filter->value as $id => $value) {
-    $filter->value[$id] = intval($value);
+  foreach ($handler->value as $id => $value) {
+    $handler->value[$id] = intval($value);
   }
 
-  return $filter;
+  return $handler;
 }
 
 // --------------------------------------------------------------------------
@@ -909,7 +1055,7 @@ function views_date_sql_field($field, $field_type = 'int', $set_offset = NULL) {
     case 'mysqli':
       switch ($field_type) {
         case 'int':
-          $field = "FROM_UNIXTIME($field)";
+          $field = "DATE_ADD('19700101', INTERVAL $field SECOND)";
           break;
         case 'datetime':
           break;
@@ -921,7 +1067,7 @@ function views_date_sql_field($field, $field_type = 'int', $set_offset = NULL) {
     case 'pgsql':
       switch ($field_type) {
         case 'int':
-          $field = "$field::ABSTIME";
+          $field = "TO_TIMESTAMP($field)";
           break;
         case 'datetime':
           break;

@@ -1,5 +1,5 @@
 <?php
-// $Id: views_plugin_argument_validate_taxonomy_term.inc,v 1.6.4.7 2010/10/07 19:40:02 dereine Exp $
+// $Id: views_plugin_argument_validate_taxonomy_term.inc,v 1.6.4.9 2011/01/22 14:21:46 dereine Exp $
 /**
  * @file
  * Contains the 'taxonomy term' argument validator plugin.
@@ -164,6 +164,9 @@ class views_plugin_argument_validate_taxonomy_term extends views_plugin_argument
         $query->leftJoin('taxonomy_vocabulary', 'tv', 'td.vid = tv.vid');
         $query->fields('td');
         $query->fields('tv', array('machine_name'));
+        if (!empty($vocabularies)) {
+          $query->condition('tv.machine_name', $vocabularies);
+        }
         if ($transform) {
           $query->where("replace(td.name, ' ', '-') = :name", array(':name' => $argument));
         }
@@ -175,8 +178,8 @@ class views_plugin_argument_validate_taxonomy_term extends views_plugin_argument
         if ($term && (empty($vocabularies) || !empty($vocabularies[$term->machine_name]))) {
           if ($type == 'convert') {
             $this->argument->argument = $term->tid;
-            $this->argument->validated_title = check_plain($term->name);
           }
+          $this->argument->validated_title = check_plain($term->name);
           return TRUE;
         }
         return FALSE;

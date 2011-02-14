@@ -292,8 +292,8 @@ nav #main-menu-links a:active{ color:#fff; background:#282828; }
 #content-inner-intro h2{font-family:Neve_Zedeq_OE, 'Arial Hebrew', Arial, sans-serif; color:#fff;text-shadow:1px 1px 4px #000;padding-right:5px;}
 
 #content-intro p{font-size:2.6em;padding-top:1em;padding-bottom:.3em; font-weight:200; letter-spacing: .5pt; }
-#content-intro h2,
-#content-inner-intro h2{font-size:3.3em;font-weight:bold; letter-spacing: .3pt; }
+#content-intro h2, #content-inner-intro h2 {font-size:3.3em;font-weight:bold; letter-spacing: .3pt; }
+.view-content h2{font-size:1.3em;}
 #content-inner-intro h2{padding: .27em 0 .1em; font-weight:normal; }
 /* Logo */
 #logo-video a{display:block;width:370px;height:265px;background:url(../images/logo.png) no-repeat 0 0; position:relative; left:-20px; }
@@ -415,4 +415,11 @@ footer{ padding:1em 0;
 .block h2{
 font-size:1.3em;
 }
+.view h2 a{font-size:1.4em;}
+.region-credits a {color:#111;}
+.submitted{text-align:left;margin-bottom:10px;}
 
+.view-fetaured-articles .views-field-title{
+font-size:1.3em;
+font-family: Neve_Zedeq_OE, 'Arial Hebrew', Arial, sans-serif;
+}

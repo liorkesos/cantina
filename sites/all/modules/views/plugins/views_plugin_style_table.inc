@@ -1,5 +1,5 @@
 <?php
-// $Id: views_plugin_style_table.inc,v 1.7.4.6 2010/10/17 10:42:44 dereine Exp $
+// $Id: views_plugin_style_table.inc,v 1.7.4.13 2011/02/04 13:51:01 dereine Exp $
 /**
  * @file
  * Contains the table style plugin.
@@ -20,6 +20,7 @@ class views_plugin_style_table extends views_plugin_style {
     $options['override'] = array('default' => TRUE);
     $options['sticky'] = array('default' => FALSE);
     $options['order'] = array('default' => 'asc');
+    $options['summary'] = array('default' => '');
 
     return $options;
   }
@@ -137,7 +138,7 @@ class views_plugin_style_table extends views_plugin_style {
     $handlers = $this->display->handler->get_handlers('field');
     if (empty($handlers)) {
       $form['error_markup'] = array(
-        '#markup' => '<div class="error form-item description">' . t('You need at least one field before you can configure your table settings') . '</div>',
+        '#markup' => '<div class="error messages">' . t('You need at least one field before you can configure your table settings') . '</div>',
       );
       return;
     }
@@ -161,6 +162,13 @@ class views_plugin_style_table extends views_plugin_style {
       '#options' => array('asc' => t('Ascending'), 'desc' => t('Descending')),
       '#default_value' => $this->options['order'],
       '#description' => t('If a default sort order is selected, what order should it use by default.'),
+    );
+
+    $form['summary'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Table summary'),
+      '#description' => t('This value will be displayed as table-summary attribute in the html. Set this for better accessiblity of your site.'),
+      '#default_value' => $this->options['summary'],
     );
 
     // Note: views UI registers this theme handler on our behalf. Your module
@@ -196,11 +204,16 @@ class views_plugin_style_table extends views_plugin_style {
         $form['info'][$field]['sortable'] = array(
           '#type' => 'checkbox',
           '#default_value' => !empty($this->options['info'][$field]['sortable']),
-          '#states' => array(
-            'visible' => array(
-              ':input[id="' . $id . '"]' => array('value' => $field),
-            ),
-          ),
+          '#process' => array('form_process_checkbox', 'ctools_dependent_process'),
+          '#dependency' => array($id => array($field)),
+        );
+        $form['info'][$field]['default_sort_order'] = array(
+          '#type' => 'select',
+          '#options' => array('asc' => t('Ascending'), 'desc' => t('Descending')),
+          '#default_value' => !empty($this->options['info'][$field]['default_sort_order']) ? $this->options['info'][$field]['default_sort_order'] : 'asc',
+          '#process' => array('ctools_dependent_process'),
+          '#dependency_count' => 2,
+          '#dependency' => array($id => array($field), 'edit-style-options-info-' . $safe . '-sortable' => array(1)),
         );
         // Provide an ID so we can have such things.
         $radio_id = drupal_html_id('edit-default-' . $field);
@@ -212,11 +225,8 @@ class views_plugin_style_table extends views_plugin_style {
           // because 'radio' doesn't fully support '#id' =(
           '#attributes' => array('id' => $radio_id),
           '#default_value' => $default,
-          '#states' => array(
-            'visible' => array(
-              ':input[id="' . $id . '"]' => array('value' => $field),
-            ),
-          ),
+          '#process' => array('ctools_dependent_process'),
+          '#dependency' => array($id => array($field)),
         );
       }
       $form['info'][$field]['align'] = array(
@@ -228,12 +238,14 @@ class views_plugin_style_table extends views_plugin_style {
           'views-align-center' => t('Center'),
           'views-align-right' => t('Right'),
           ),
+        '#process' => array('form_process_select', 'ctools_dependent_process'),
         '#dependency' => array($id => array($field)),
       );
       $form['info'][$field]['separator'] = array(
         '#type' => 'textfield',
         '#size' => 10,
         '#default_value' => isset($this->options['info'][$field]['separator']) ? $this->options['info'][$field]['separator'] : '',
+        '#process' => array('ctools_dependent_process'),
         '#dependency' => array($id => array($field)),
       );
 
